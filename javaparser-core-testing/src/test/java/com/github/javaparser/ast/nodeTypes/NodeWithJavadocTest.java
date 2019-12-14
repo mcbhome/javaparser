@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2017 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,48 +21,44 @@
 
 package com.github.javaparser.ast.nodeTypes;
 
-import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.comments.LineComment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.EnumSet;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-public class NodeWithJavadocTest {
+class NodeWithJavadocTest {
 
     @Test
-    public void removeJavaDocNegativeCaseNoComment() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void removeJavaDocNegativeCaseNoComment() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
-        assertEquals(false, decl.removeJavaDocComment());
+        assertFalse(decl.removeJavaDocComment());
     }
 
     @Test
-    public void removeJavaDocNegativeCaseCommentNotJavaDoc() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void removeJavaDocNegativeCaseCommentNotJavaDoc() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
         decl.setComment(new LineComment("A comment"));
-        assertEquals(false, decl.removeJavaDocComment());
+        assertFalse(decl.removeJavaDocComment());
         assertTrue(decl.getComment().isPresent());
     }
 
     @Test
-    public void removeJavaDocPositiveCase() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void removeJavaDocPositiveCase() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
         decl.setComment(new JavadocComment("A comment"));
-        assertEquals(true, decl.removeJavaDocComment());
+        assertTrue(decl.removeJavaDocComment());
         assertFalse(decl.getComment().isPresent());
     }
 
     @Test
-    public void getJavadocOnMethodWithLineCommentShouldReturnEmptyOptional() {
+    void getJavadocOnMethodWithLineCommentShouldReturnEmptyOptional() {
         MethodDeclaration method = new MethodDeclaration();
         method.setLineComment("Lorem Ipsum.");
 

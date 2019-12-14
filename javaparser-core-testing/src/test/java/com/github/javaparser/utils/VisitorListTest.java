@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,28 +21,27 @@
 
 package com.github.javaparser.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.ObjectIdentityEqualsVisitor;
 import com.github.javaparser.ast.visitor.ObjectIdentityHashCodeVisitor;
 
-public class VisitorListTest {
+class VisitorListTest {
 
     @Test
-    public void visitorAddAll() {
+    void visitorAddAll() {
         List<CompilationUnit> list = new ArrayList<>();
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
         VisitorList<CompilationUnit> vList = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         vList.addAll(list);
@@ -51,23 +50,23 @@ public class VisitorListTest {
     }
 
     @Test
-    public void visitorAddAllAtIndex() {
+    void visitorAddAllAtIndex() {
         List<CompilationUnit> list = new ArrayList<>();
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class Y{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class Y{}"));
         VisitorList<CompilationUnit> vList = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
-        vList.add(JavaParser.parse("class A{}"));
-        vList.add(JavaParser.parse("class B{}"));
+        vList.add(parse("class A{}"));
+        vList.add(parse("class B{}"));
         vList.addAll(2, list);
-        vList.add(JavaParser.parse("class C{}"));
+        vList.add(parse("class C{}"));
         for (int i = 0; i < list.size(); i++)
             assertEquals(list.get(i), vList.get(2 + i));
     }
 
     @Test
-    public void visitorListContains() {
-        CompilationUnit x1 = JavaParser.parse("class X{}");
+    void visitorListContains() {
+        CompilationUnit x1 = parse("class X{}");
         VisitorList<CompilationUnit> list = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         list.add(x1);
@@ -75,10 +74,10 @@ public class VisitorListTest {
     }
 
     @Test
-    public void visitorListContainsAll() {
+    void visitorListContainsAll() {
         List<CompilationUnit> list = new ArrayList<>();
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
         VisitorList<CompilationUnit> vList = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         vList.addAll(list);
@@ -86,44 +85,44 @@ public class VisitorListTest {
     }
 
     @Test
-    public void visitorListIterator() {
+    void visitorListIterator() {
         VisitorList<CompilationUnit> list = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
-        CompilationUnit x1 = JavaParser.parse("class X{}");
+        CompilationUnit x1 = parse("class X{}");
         list.add(x1);
-        CompilationUnit x2 = JavaParser.parse("class X{}");
+        CompilationUnit x2 = parse("class X{}");
         list.add(x2);
         Iterator<CompilationUnit> itr = list.iterator();
         assertEquals(x1, itr.next());
         itr.remove();
-        assertTrue(list.size() == 1);
+        assertEquals(1, list.size());
         assertEquals(x2, itr.next());
         itr.remove();
-        assertTrue(list.size() == 0);
+        assertEquals(0, list.size());
     }
 
     @Test
-    public void visitorListListIterator() {
+    void visitorListListIterator() {
         VisitorList<CompilationUnit> list = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
-        CompilationUnit x1 = JavaParser.parse("class X{}");
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
+        CompilationUnit x1 = parse("class X{}");
         list.add(x1);
-        CompilationUnit x2 = JavaParser.parse("class X{}");
+        CompilationUnit x2 = parse("class X{}");
         list.add(x2);
         Iterator<CompilationUnit> itr = list.listIterator(2);
         assertEquals(x1, itr.next());
         itr.remove();
-        assertTrue(list.size() == 3);
+        assertEquals(3, list.size());
         assertEquals(x2, itr.next());
         itr.remove();
-        assertTrue(list.size() == 2);
+        assertEquals(2, list.size());
     }
 
     @Test
-    public void visitorListRemove() {
-        CompilationUnit x1 = JavaParser.parse("class X{}");
+    void visitorListRemove() {
+        CompilationUnit x1 = parse("class X{}");
         VisitorList<CompilationUnit> list = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         list.add(x1);
@@ -131,52 +130,52 @@ public class VisitorListTest {
     }
 
     @Test
-    public void visitorListRemoveAll() {
+    void visitorListRemoveAll() {
         List<CompilationUnit> list = new ArrayList<>();
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
         VisitorList<CompilationUnit> vList = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         vList.addAll(list);
         vList.removeAll(list);
-        assertTrue(vList.size() == 0);
+        assertEquals(0, vList.size());
     }
 
     @Test
-    public void visitorListRetainAll() {
+    void visitorListRetainAll() {
         List<CompilationUnit> list = new ArrayList<>();
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
         VisitorList<CompilationUnit> vList = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         vList.addAll(list);
-        vList.add(JavaParser.parse("class X{}"));
+        vList.add(parse("class X{}"));
         vList.retainAll(list);
-        assertTrue(vList.size() == 2);
+        assertEquals(2, vList.size());
     }
 
     @Test
-    public void visitorListSubList() {
+    void visitorListSubList() {
         VisitorList<CompilationUnit> list = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
-        assertTrue(list.size() == 4);
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
+        assertEquals(4, list.size());
         List<CompilationUnit> subLst = list.subList(1, 3);
-        assertTrue(subLst.size() == 2);
-        subLst.add(JavaParser.parse("class X{}"));
-        assertTrue(subLst.size() == 3);
-        assertTrue(list.size() == 5);
+        assertEquals(2, subLst.size());
+        subLst.add(parse("class X{}"));
+        assertEquals(3, subLst.size());
+        assertEquals(5, list.size());
 
     }
 
     @Test
-    public void visitorListToArray() {
+    void visitorListToArray() {
         List<CompilationUnit> list = new ArrayList<>();
-        list.add(JavaParser.parse("class X{}"));
-        list.add(JavaParser.parse("class X{}"));
+        list.add(parse("class X{}"));
+        list.add(parse("class X{}"));
         List<CompilationUnit> vList = new VisitorList<>(new ObjectIdentityHashCodeVisitor(),
                 new ObjectIdentityEqualsVisitor());
         vList.addAll(list);

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -23,6 +23,7 @@ package com.github.javaparser.utils;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Function;
@@ -36,15 +37,6 @@ import static java.util.Arrays.*;
  */
 public class Utils {
     public static final String EOL = System.getProperty("line.separator");
-
-    public static final Predicate<String> STRING_NOT_EMPTY = s -> !s.isEmpty();
-
-    /**
-     * @deprecated This is no longer in use by JavaParser, please write your own replacement.
-     */
-    public static <T> List<T> ensureNotNull(List<T> list) {
-        return list == null ? new ArrayList<>() : list;
-    }
 
     public static <E> boolean isNullOrEmpty(Collection<E> collection) {
         return collection == null || collection.isEmpty();
@@ -108,19 +100,6 @@ public class Utils {
         }
 
         return result.toString();
-    }
-
-    /**
-     * Puts varargs in a mutable list.
-     * This does not have the disadvantage of Arrays#asList that it has a static size.
-     *
-     * @deprecated This is no longer in use by JavaParser, please write your own replacement.
-     */
-    @Deprecated
-    public static <T> List<T> arrayToList(T[] array) {
-        List<T> list = new LinkedList<>();
-        Collections.addAll(list, array);
-        return list;
     }
 
     /**
@@ -228,9 +207,59 @@ public class Utils {
         return false;
     }
 
+    public static boolean valueIsNullOrEmptyStringOrOptional(Object value) {
+        if (value == null) {
+            return true;
+        }
+        if (value instanceof Optional) {
+            if (((Optional) value).isPresent()) {
+                value = ((Optional) value).get();
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Like {@link List#set(int, Object)} at {@link List#indexOf(Object)}, but using ==, not equals.
+     */
+    public static <E> void replaceElementByObjectIdentity(List<E> list, E oldObject, E newObject) {
+        int index = indexOfElementByObjectIdentity(list, oldObject);
+        if (index == -1) {
+            return;
+        }
+        list.set(index, newObject);
+    }
+
+    /**
+     * Like {@link List#remove(Object)}, but using ==, not equals.
+     */
+    public static <E> void removeElementByObjectIdentity(List<E> list, E o) {
+        int index = indexOfElementByObjectIdentity(list, o);
+        if (index == -1) {
+            return;
+        }
+        list.remove(index);
+    }
+
+    /**
+     * Like {@link List#indexOf(Object)}, but using ==, not equals.
+     */
+    public static <E> int indexOfElementByObjectIdentity(List<E> list, E o) {
+        for (int i = 0; i < list.size(); i++) {
+            Object listO = list.get(i);
+            if (o == listO) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /**
      * @return a set of the items.
      */
+    @SafeVarargs
     public static <T> Set<T> set(T... items) {
         return new HashSet<>(asList(items));
     }

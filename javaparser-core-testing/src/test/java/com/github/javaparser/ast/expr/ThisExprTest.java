@@ -1,33 +1,55 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.ast.expr;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static com.github.javaparser.JavaParser.parseExpression;
+import static com.github.javaparser.StaticJavaParser.parseExpression;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ThisExprTest {
+class ThisExprTest {
     @Test
-    public void justThis() {
+    void justThis() {
         Expression expr = parseExpression("this");
 
         assertTrue(expr.isThisExpr());
     }
 
     @Test
-    public void singleScopeThis() {
-        Expression expr = parseExpression("a.this");
+    void singleScopeThis() {
+        Expression expr = parseExpression("A.this");
 
-        Expression classExpr = expr.asThisExpr().getClassExpr().get();
+        Name className = expr.asThisExpr().getTypeName().get();
 
-        assertTrue(classExpr.isNameExpr());
+        assertEquals("A", className.asString());
     }
 
     @Test
-    public void multiScopeThis() {
-        Expression expr = parseExpression("a.b.this");
+    void multiScopeThis() {
+        Expression expr = parseExpression("a.B.this");
 
-        Expression classExpr = expr.asThisExpr().getClassExpr().get();
+        Name className = expr.asThisExpr().getTypeName().get();
 
-        assertTrue(classExpr.isFieldAccessExpr());
+        assertEquals("a.B", className.asString());
     }
 }

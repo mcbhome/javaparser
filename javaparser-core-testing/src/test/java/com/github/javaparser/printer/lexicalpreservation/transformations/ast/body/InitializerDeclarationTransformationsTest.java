@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -23,14 +23,14 @@ package com.github.javaparser.printer.lexicalpreservation.transformations.ast.bo
 
 import com.github.javaparser.ast.body.InitializerDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.AbstractLexicalPreservingTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 /**
  * Transforming InitializerDeclaration and verifying the LexicalPreservation works as expected.
  */
-public class InitializerDeclarationTransformationsTest extends AbstractLexicalPreservingTest {
+class InitializerDeclarationTransformationsTest extends AbstractLexicalPreservingTest {
 
     protected InitializerDeclaration consider(String code) {
         considerCode("class A { " + code + " }");
@@ -44,14 +44,14 @@ public class InitializerDeclarationTransformationsTest extends AbstractLexicalPr
     // IsStatic
 
     @Test
-    public void instanceToStatic() throws IOException {
+    void instanceToStatic() {
         InitializerDeclaration it = consider("{ /*some comment*/ }");
         it.setStatic(true);
         assertTransformedToString("static { /*some comment*/ }", it);
     }
 
     @Test
-    public void staticToInstance() throws IOException {
+    void staticToInstance() {
         InitializerDeclaration it = consider("static { /*some comment*/ }");
         it.setStatic(false);
         assertTransformedToString("{ /*some comment*/ }", it);

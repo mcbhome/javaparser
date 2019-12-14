@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparsermodel.contexts;
@@ -68,7 +73,7 @@ public class StatementContext<N extends Statement> extends AbstractJavaParserCon
         }
 
         // if nothing is found we should ask the parent context
-        return JavaParserFactory.getContext(requireParentNode(stmt), typeSolver).solveSymbol(name, typeSolver);
+        return JavaParserFactory.getContext(requireParentNode(stmt), typeSolver).solveSymbol(name);
     }
 
     public static Optional<Value> solveInBlockAsValue(String name, TypeSolver typeSolver, Statement stmt) {
@@ -94,31 +99,31 @@ public class StatementContext<N extends Statement> extends AbstractJavaParserCon
         }
 
         // if nothing is found we should ask the parent context
-        return JavaParserFactory.getContext(requireParentNode(stmt), typeSolver).solveSymbolAsValue(name, typeSolver);
+        return JavaParserFactory.getContext(requireParentNode(stmt), typeSolver).solveSymbolAsValue(name);
     }
 
     @Override
-    public Optional<Value> solveSymbolAsValue(String name, TypeSolver typeSolver) {
+    public Optional<Value> solveSymbolAsValue(String name) {
 
         // if we're in a multiple Variable declaration line (for ex: double a=0, b=a;)
         SymbolDeclarator symbolDeclarator = JavaParserFactory.getSymbolDeclarator(wrappedNode, typeSolver);
-        Optional<Value> symbolReference = solveWithAsValue(symbolDeclarator, name, typeSolver);
+        Optional<Value> symbolReference = solveWithAsValue(symbolDeclarator, name);
         if (symbolReference.isPresent()) {
             return symbolReference;
         }
 
         // we should look in all the statements preceding, treating them as SymbolDeclarators
         if (requireParentNode(wrappedNode) instanceof com.github.javaparser.ast.body.MethodDeclaration) {
-            return getParent().solveSymbolAsValue(name, typeSolver);
+            return getParent().solveSymbolAsValue(name);
         }
         if (requireParentNode(wrappedNode) instanceof LambdaExpr) {
-            return getParent().solveSymbolAsValue(name, typeSolver);
+            return getParent().solveSymbolAsValue(name);
         }
         if (requireParentNode(wrappedNode) instanceof IfStmt) {
-            return getParent().solveSymbolAsValue(name, typeSolver);
+            return getParent().solveSymbolAsValue(name);
         }
         if (!(requireParentNode(wrappedNode) instanceof NodeWithStatements)) {
-            return getParent().solveSymbolAsValue(name, typeSolver);
+            return getParent().solveSymbolAsValue(name);
         }
         NodeWithStatements<?> nodeWithStmt = (NodeWithStatements<?>) requireParentNode(wrappedNode);
         int position = -1;
@@ -132,7 +137,7 @@ public class StatementContext<N extends Statement> extends AbstractJavaParserCon
         }
         for (int i = position - 1; i >= 0; i--) {
             symbolDeclarator = JavaParserFactory.getSymbolDeclarator(nodeWithStmt.getStatements().get(i), typeSolver);
-            symbolReference = solveWithAsValue(symbolDeclarator, name, typeSolver);
+            symbolReference = solveWithAsValue(symbolDeclarator, name);
             if (symbolReference.isPresent()) {
                 return symbolReference;
             }
@@ -140,11 +145,11 @@ public class StatementContext<N extends Statement> extends AbstractJavaParserCon
 
         // if nothing is found we should ask the parent context
         Context parentContext = getParent();
-        return parentContext.solveSymbolAsValue(name, typeSolver);
+        return parentContext.solveSymbolAsValue(name);
     }
 
     @Override
-    public SymbolReference<? extends ResolvedValueDeclaration> solveSymbol(String name, TypeSolver typeSolver) {
+    public SymbolReference<? extends ResolvedValueDeclaration> solveSymbol(String name) {
 
         // if we're in a multiple Variable declaration line (for ex: double a=0, b=a;)
         SymbolDeclarator symbolDeclarator = JavaParserFactory.getSymbolDeclarator(wrappedNode, typeSolver);
@@ -155,16 +160,16 @@ public class StatementContext<N extends Statement> extends AbstractJavaParserCon
 
         // we should look in all the statements preceding, treating them as SymbolDeclarators
         if (requireParentNode(wrappedNode) instanceof com.github.javaparser.ast.body.MethodDeclaration) {
-            return getParent().solveSymbol(name, typeSolver);
+            return getParent().solveSymbol(name);
         }
         if (requireParentNode(wrappedNode) instanceof com.github.javaparser.ast.body.ConstructorDeclaration) {
-            return getParent().solveSymbol(name, typeSolver);
+            return getParent().solveSymbol(name);
         }
         if (requireParentNode(wrappedNode) instanceof LambdaExpr) {
-            return getParent().solveSymbol(name, typeSolver);
+            return getParent().solveSymbol(name);
         }
         if (!(requireParentNode(wrappedNode) instanceof NodeWithStatements)) {
-            return getParent().solveSymbol(name, typeSolver);
+            return getParent().solveSymbol(name);
         }
         NodeWithStatements<?> nodeWithStmt = (NodeWithStatements<?>) requireParentNode(wrappedNode);
         int position = -1;
@@ -185,16 +190,16 @@ public class StatementContext<N extends Statement> extends AbstractJavaParserCon
         }
 
         // if nothing is found we should ask the parent context
-        return getParent().solveSymbol(name, typeSolver);
+        return getParent().solveSymbol(name);
     }
 
     @Override
-    public SymbolReference<ResolvedMethodDeclaration> solveMethod(String name, List<ResolvedType> argumentsTypes, boolean staticOnly, TypeSolver typeSolver) {
-        return getParent().solveMethod(name, argumentsTypes, false, typeSolver);
+    public SymbolReference<ResolvedMethodDeclaration> solveMethod(String name, List<ResolvedType> argumentsTypes, boolean staticOnly) {
+        return getParent().solveMethod(name, argumentsTypes, false);
     }
 
     @Override
-    public SymbolReference<ResolvedTypeDeclaration> solveType(String name, TypeSolver typeSolver) {
-        return getParent().solveType(name, typeSolver);
+    public SymbolReference<ResolvedTypeDeclaration> solveType(String name) {
+        return getParent().solveType(name);
     }
 }

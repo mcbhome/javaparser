@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,36 +21,36 @@
 
 package com.github.javaparser.ast.imports;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.ImportDeclaration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parseImport;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ImportDeclarationTest {
+class ImportDeclarationTest {
     @Test
-    public void singleTypeImportDeclaration() {
-        ImportDeclaration i = JavaParser.parseImport("import a.b.c.X;");
+    void singleTypeImportDeclaration() {
+        ImportDeclaration i = parseImport("import a.b.c.X;");
         assertEquals("a.b.c.X", i.getNameAsString());
     }
 
     @Test
-    public void typeImportOnDemandDeclaration() {
-        ImportDeclaration i = JavaParser.parseImport("import a.b.c.D.*;");
+    void typeImportOnDemandDeclaration() {
+        ImportDeclaration i = parseImport("import a.b.c.D.*;");
         assertEquals("a.b.c.D", i.getName().toString());
         assertEquals("D", i.getName().getIdentifier());
     }
 
     @Test
-    public void singleStaticImportDeclaration() {
-        ImportDeclaration i = JavaParser.parseImport("import static a.b.c.X.def;");
+    void singleStaticImportDeclaration() {
+        ImportDeclaration i = parseImport("import static a.b.c.X.def;");
         assertEquals("a.b.c.X", i.getName().getQualifier().get().asString());
         assertEquals("def", i.getName().getIdentifier());
     }
 
     @Test
-    public void staticImportOnDemandDeclaration() {
-        ImportDeclaration i = JavaParser.parseImport("import static a.b.c.X.*;");
+    void staticImportOnDemandDeclaration() {
+        ImportDeclaration i = parseImport("import static a.b.c.X.*;");
         assertEquals("a.b.c.X", i.getNameAsString());
     }
 

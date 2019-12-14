@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -23,7 +23,7 @@ package com.github.javaparser.utils;
 
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -32,10 +32,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SourceZipTest {
+class SourceZipTest {
 
     private final Path testDir = CodeGenerationUtils.mavenModuleRoot(SourceZipTest.class)
             .resolve(Paths.get("..", "javaparser-core-testing", "src", "test", "resources", "com", "github", "javaparser",
@@ -43,7 +44,7 @@ public class SourceZipTest {
             .normalize();
 
     @Test
-    public void parseTestDirectory() throws URISyntaxException, IOException {
+    void parseTestDirectory() throws IOException {
         SourceZip sourceZip = new SourceZip(testDir.resolve("test.zip"));
         List<Pair<Path, ParseResult<CompilationUnit>>> results = sourceZip.parse();
         assertEquals(3, results.size());
@@ -55,7 +56,7 @@ public class SourceZipTest {
     }
 
     @Test
-    public void parseTestDirectoryWithCallback() throws URISyntaxException, IOException {
+    void parseTestDirectoryWithCallback() throws IOException {
         SourceZip sourceZip = new SourceZip(testDir.resolve("test.zip"));
         List<Pair<Path, ParseResult<CompilationUnit>>> results = new ArrayList<>();
 
@@ -69,13 +70,13 @@ public class SourceZipTest {
         assertTrue(units.stream().noneMatch(unit -> unit.getTypes().isEmpty()));
     }
 
-    @Test(expected = IOException.class)
-    public void dirAsZipIsNotAllowed() throws IOException {
-        new SourceZip(testDir.resolve("test")).parse();
+    @Test
+    void dirAsZipIsNotAllowed() {
+        assertThrows(IOException.class, () -> new SourceZip(testDir.resolve("test")).parse());
     }
 
-    @Test(expected = IOException.class)
-    public void fileAsZipIsNotAllowed() throws IOException {
-        new SourceZip(testDir.resolve("test.txt")).parse();
+    @Test
+    void fileAsZipIsNotAllowed() {
+        assertThrows(IOException.class, () -> new SourceZip(testDir.resolve("test.txt")).parse());
     }
 }

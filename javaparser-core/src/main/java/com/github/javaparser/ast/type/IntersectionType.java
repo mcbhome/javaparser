@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -32,16 +32,13 @@ import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.metamodel.IntersectionTypeMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
 import com.github.javaparser.metamodel.NonEmptyProperty;
-import java.util.Arrays;
-import java.util.List;
 import static com.github.javaparser.utils.Utils.assertNotNull;
 import static java.util.stream.Collectors.joining;
-import javax.annotation.Generated;
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.resolution.types.ResolvedIntersectionType;
-import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import java.util.function.Consumer;
 import java.util.Optional;
+import com.github.javaparser.ast.Generated;
 
 /**
  * Represents a set of types. A given value of this type has to be assignable to at all of the element types.
@@ -55,7 +52,7 @@ import java.util.Optional;
  *
  * @since 3.0.0
  */
-public final class IntersectionType extends Type implements NodeWithAnnotations<IntersectionType> {
+public class IntersectionType extends Type implements NodeWithAnnotations<IntersectionType> {
 
     @NonEmptyProperty
     private NodeList<ReferenceType> elements;

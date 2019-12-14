@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparser;
@@ -37,14 +42,6 @@ public final class Navigator {
 
     private Navigator() {
         // prevent instantiation
-    }
-
-    /**
-     * @deprecated use Node.getParentNode
-     */
-    @Deprecated
-    public static Node getParentNode(Node node) {
-        return node.getParentNode().orElse(null);
     }
 
     public static Node requireParentNode(Node node) {
@@ -98,6 +95,14 @@ public final class Navigator {
         ClassOrInterfaceDeclaration cd = demandClassOrInterface(cu, qualifiedName);
         if (cd.isInterface()) {
             throw new IllegalStateException("Type is not a class");
+        }
+        return cd;
+    }
+
+    public static ClassOrInterfaceDeclaration demandInterface(CompilationUnit cu, String qualifiedName) {
+        ClassOrInterfaceDeclaration cd = demandClassOrInterface(cu, qualifiedName);
+        if (!cd.isInterface()) {
+            throw new IllegalStateException("Type is not an interface");
         }
         return cd;
     }
@@ -205,25 +210,9 @@ public final class Navigator {
         return node.findFirst(clazz).orElseThrow(IllegalArgumentException::new);
     }
 
-    /**
-     * @deprecated use Node.findAll instead
-     */
-    @Deprecated
-    public static <N extends Node> List<N> findAllNodesOfGivenClass(Node node, Class<N> clazz) {
-        return node.findAll(clazz);
-    }
-
     // TODO should be demand or require...
     public static ReturnStmt findReturnStmt(MethodDeclaration method) {
         return findNodeOfGivenClass(method, ReturnStmt.class);
-    }
-
-    /**
-     * @deprecated use Node.findParent instead
-     */
-    @Deprecated
-    public static <N extends Node> Optional<N> findAncestor(Node node, Class<N> clazz) {
-        return node.findParent(clazz);
     }
 
     ///

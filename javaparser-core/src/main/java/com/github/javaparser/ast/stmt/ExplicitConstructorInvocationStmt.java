@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -29,28 +29,19 @@ import com.github.javaparser.ast.observer.ObservableProperty;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.GenericVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitor;
-
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-
 import static com.github.javaparser.utils.Utils.assertNotNull;
-
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.ExplicitConstructorInvocationStmtMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-
-import javax.annotation.Generated;
-
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.metamodel.OptionalProperty;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-
 import java.util.function.Consumer;
+import com.github.javaparser.ast.Generated;
 
 /**
  * A call to super or this in a constructor or initializer.
@@ -61,7 +52,7 @@ import java.util.function.Consumer;
  * @see com.github.javaparser.ast.expr.SuperExpr
  * @see com.github.javaparser.ast.expr.ThisExpr
  */
-public final class ExplicitConstructorInvocationStmt extends Statement implements NodeWithTypeArguments<ExplicitConstructorInvocationStmt>, NodeWithArguments<ExplicitConstructorInvocationStmt>, Resolvable<ResolvedConstructorDeclaration> {
+public class ExplicitConstructorInvocationStmt extends Statement implements NodeWithTypeArguments<ExplicitConstructorInvocationStmt>, NodeWithArguments<ExplicitConstructorInvocationStmt>, Resolvable<ResolvedConstructorDeclaration> {
 
     @OptionalProperty
     private NodeList<Type> typeArguments;
@@ -74,11 +65,11 @@ public final class ExplicitConstructorInvocationStmt extends Statement implement
     private NodeList<Expression> arguments;
 
     public ExplicitConstructorInvocationStmt() {
-        this(null, new NodeList<>(), true, null, new NodeList<>());
+        this(null, null, true, null, new NodeList<>());
     }
 
     public ExplicitConstructorInvocationStmt(final boolean isThis, final Expression expression, final NodeList<Expression> arguments) {
-        this(null, new NodeList<>(), isThis, expression, arguments);
+        this(null, null, isThis, expression, arguments);
     }
 
     @AllFieldsConstructor
@@ -298,14 +289,6 @@ public final class ExplicitConstructorInvocationStmt extends Statement implement
      */
     public ResolvedConstructorDeclaration resolve() {
         return getSymbolResolver().resolveDeclaration(this, ResolvedConstructorDeclaration.class);
-    }
-
-    /**
-     * @deprecated Call {@link #resolve()} instead.
-     */
-    @Deprecated
-    public ResolvedConstructorDeclaration resolveInvokedConstructor() {
-        return resolve();
     }
 
     @Override

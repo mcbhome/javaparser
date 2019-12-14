@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,23 +21,24 @@
 
 package com.github.javaparser.ast.observer;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PropagatingAstObserverTest {
+class PropagatingAstObserverTest {
     @Test
-    public void verifyPropagation() {
+    void verifyPropagation() {
         String code = "class A {  }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
         AstObserver observer = new PropagatingAstObserver() {
             @Override
@@ -51,7 +52,7 @@ public class PropagatingAstObserverTest {
 
         FieldDeclaration fieldDeclaration = cu.getClassByName("A").get().addField("String", "foo");
         assertEquals(Arrays.asList(), changes);
-        assertEquals(true, fieldDeclaration.isRegistered(observer));
+        assertTrue(fieldDeclaration.isRegistered(observer));
 
         cu.getClassByName("A").get().getFieldByName("foo").get().getVariables().get(0).setName("Bar");
         assertEquals(Arrays.asList("VariableDeclarator.name changed from foo to Bar"), changes);

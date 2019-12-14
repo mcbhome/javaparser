@@ -1,15 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.reflectionmodel;
@@ -20,20 +27,24 @@ import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
+import com.github.javaparser.symbolsolver.core.resolution.MethodUsageResolutionCapability;
 import com.github.javaparser.symbolsolver.logic.AbstractTypeDeclaration;
 import com.github.javaparser.symbolsolver.logic.ConfilictingGenericTypesException;
 import com.github.javaparser.symbolsolver.logic.InferenceContext;
+import com.github.javaparser.symbolsolver.logic.MethodResolutionCapability;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author Federico Tomassetti
  */
-public class ReflectionEnumDeclaration extends AbstractTypeDeclaration implements ResolvedEnumDeclaration {
+public class ReflectionEnumDeclaration extends AbstractTypeDeclaration
+        implements ResolvedEnumDeclaration, MethodResolutionCapability, MethodUsageResolutionCapability {
 
   ///
   /// Fields
@@ -105,7 +116,9 @@ public class ReflectionEnumDeclaration extends AbstractTypeDeclaration implement
   }
 
   @Override
-  public List<ResolvedReferenceType> getAncestors() {
+  public List<ResolvedReferenceType> getAncestors(boolean acceptIncompleteList) {
+    // we do not attempt to perform any symbol solving when analyzing ancestors in the reflection model, so we can
+    // simply ignore the boolean parameter here; an UnsolvedSymbolException cannot occur
     return reflectionClassAdapter.getAncestors();
   }
 
@@ -154,12 +167,13 @@ public class ReflectionEnumDeclaration extends AbstractTypeDeclaration implement
     return reflectionClassAdapter.getTypeParameters();
   }
 
+  @Override
   public SymbolReference<ResolvedMethodDeclaration> solveMethod(String name, List<ResolvedType> parameterTypes, boolean staticOnly) {
     return ReflectionMethodResolutionLogic.solveMethod(name, parameterTypes, staticOnly,
             typeSolver,this, clazz);
   }
 
-  public Optional<MethodUsage> solveMethodAsUsage(String name, List<ResolvedType> parameterTypes, TypeSolver typeSolver,
+  public Optional<MethodUsage> solveMethodAsUsage(String name, List<ResolvedType> parameterTypes,
                                                   Context invokationContext, List<ResolvedType> typeParameterValues) {
     Optional<MethodUsage> res = ReflectionMethodResolutionLogic.solveMethodAsUsage(name, parameterTypes, typeSolver, invokationContext,
             typeParameterValues, this, clazz);
@@ -194,8 +208,20 @@ public class ReflectionEnumDeclaration extends AbstractTypeDeclaration implement
   @Override
   public List<ResolvedEnumConstantDeclaration> getEnumConstants() {
       return Arrays.stream(clazz.getFields())
-              .filter(f -> f.isEnumConstant())
+              .filter(Field::isEnumConstant)
               .map(c -> new ReflectionEnumConstantDeclaration(c, typeSolver))
               .collect(Collectors.toList());
+  }
+
+  @Override
+  public Set<ResolvedReferenceTypeDeclaration> internalTypes() {
+    return Arrays.stream(this.clazz.getDeclaredClasses())
+            .map(ic -> ReflectionFactory.typeDeclarationFor(ic, typeSolver))
+            .collect(Collectors.toSet());
+  }
+
+  @Override
+  public List<ResolvedConstructorDeclaration> getConstructors() {
+    return reflectionClassAdapter.getConstructors();
   }
 }

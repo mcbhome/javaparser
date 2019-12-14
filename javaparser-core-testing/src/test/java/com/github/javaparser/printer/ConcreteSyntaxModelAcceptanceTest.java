@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,19 +21,19 @@
 
 package com.github.javaparser.printer;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.TestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ConcreteSyntaxModelAcceptanceTest {
+class ConcreteSyntaxModelAcceptanceTest {
     private final Path rootDir = CodeGenerationUtils.mavenModuleRoot(ConcreteSyntaxModelAcceptanceTest.class).resolve("src/test/test_sourcecode");
 
     private String prettyPrint(Node node) {
@@ -45,14 +45,14 @@ public class ConcreteSyntaxModelAcceptanceTest {
     }
 
     @Test
-    public void printingExamplePrettyPrintVisitor() throws IOException {
-        CompilationUnit cu = JavaParser.parse(rootDir.resolve("com/github/javaparser/printer/PrettyPrintVisitor.java"));
+    void printingExamplePrettyPrintVisitor() throws IOException {
+        CompilationUnit cu = parse(rootDir.resolve("com/github/javaparser/printer/PrettyPrintVisitor.java"));
         assertEquals(prettyPrintedExpectation("PrettyPrintVisitor"), prettyPrint(cu));
     }
 
     @Test
-    public void printingExampleJavaConcepts() throws IOException {
-        CompilationUnit cu = JavaParser.parse(rootDir.resolve("com/github/javaparser/printer/JavaConcepts.java"));
+    void printingExampleJavaConcepts() throws IOException {
+        CompilationUnit cu = parse(rootDir.resolve("com/github/javaparser/printer/JavaConcepts.java"));
         assertEquals(prettyPrintedExpectation("JavaConcepts"), prettyPrint(cu));
     }
 

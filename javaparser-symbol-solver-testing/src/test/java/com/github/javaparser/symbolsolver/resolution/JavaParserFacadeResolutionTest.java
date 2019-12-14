@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.resolution;
@@ -24,7 +29,6 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.stmt.CatchClause;
-import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.MethodUsage;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
@@ -38,17 +42,18 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
+class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
 
     @Test
-    public void typeDeclarationSuperClassImplicitlyIncludeObject() {
+    void typeDeclarationSuperClassImplicitlyIncludeObject() {
         CompilationUnit cu = parseSample("Generics");
         ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "Generics");
         ResolvedTypeDeclaration typeDeclaration = JavaParserFacade.get(new ReflectionTypeSolver()).getTypeDeclaration(clazz);
@@ -58,7 +63,7 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
 
     // See issue 42
     @Test
-    public void solvingReferenceToUnsupportedOperationException() {
+    void solvingReferenceToUnsupportedOperationException() {
         String code = "public class Bla {\n" +
                 "    public void main()\n" +
                 "    {\n" +
@@ -73,14 +78,14 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
                 "        }\n" +
                 "    }\n" +
                 "}";
-        MethodCallExpr methodCallExpr = Navigator.findNodeOfGivenClass(JavaParser.parse(code), MethodCallExpr.class);
+        MethodCallExpr methodCallExpr = Navigator.findNodeOfGivenClass(parse(code), MethodCallExpr.class);
         MethodUsage methodUsage = JavaParserFacade.get(new ReflectionTypeSolver()).solveMethodAsUsage(methodCallExpr);
         assertEquals("java.lang.Throwable.getMessage()", methodUsage.getQualifiedSignature());
     }
 
     // See issue 46
     @Test
-    public void solvingReferenceToCatchClauseParam() {
+    void solvingReferenceToCatchClauseParam() {
         String code = "public class Bla {\n" +
                 "    public void main()\n" +
                 "    {\n" +
@@ -95,18 +100,18 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
                 "        }\n" +
                 "    }\n" +
                 "}";
-        MethodCallExpr methodCallExpr = Navigator.findNodeOfGivenClass(JavaParser.parse(code), MethodCallExpr.class);
+        MethodCallExpr methodCallExpr = Navigator.findNodeOfGivenClass(parse(code), MethodCallExpr.class);
         NameExpr nameE = (NameExpr) methodCallExpr.getScope().get();
         SymbolReference<? extends ResolvedValueDeclaration> symbolReference = JavaParserFacade.get(new ReflectionTypeSolver()).solve(nameE);
-        assertEquals(true, symbolReference.isSolved());
-        assertEquals(true, symbolReference.getCorrespondingDeclaration().isParameter());
+        assertTrue(symbolReference.isSolved());
+        assertTrue(symbolReference.getCorrespondingDeclaration().isParameter());
         assertEquals("e", symbolReference.getCorrespondingDeclaration().asParameter().getName());
         assertEquals("java.lang.UnsupportedOperationException", symbolReference.getCorrespondingDeclaration().asParameter().getType().asReferenceType().getQualifiedName());
     }
 
     // See issue 47
     @Test
-    public void solvingReferenceToAnAncestorInternalClass() {
+    void solvingReferenceToAnAncestorInternalClass() {
         String code = "public class Foo {\n" +
                 "    public class Base {\n" +
                 "        public class X {\n" +
@@ -117,7 +122,7 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
                 "        public X x = null;\n" +
                 "    }\n" +
                 "}";
-        FieldDeclaration fieldDeclaration = Navigator.findNodeOfGivenClass(JavaParser.parse(code), FieldDeclaration.class);
+        FieldDeclaration fieldDeclaration = Navigator.findNodeOfGivenClass(parse(code), FieldDeclaration.class);
         Type jpType = fieldDeclaration.getCommonType();
         ResolvedType jssType = JavaParserFacade.get(new ReflectionTypeSolver()).convertToUsage(jpType);
         assertEquals("Foo.Base.X", jssType.asReferenceType().getQualifiedName());
@@ -125,15 +130,15 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
 
     // See issue 119
     @Test
-    public void solveTryWithResourceVariable() {
+    void solveTryWithResourceVariable() {
         String code = "import java.util.Scanner; class A { void foo() { try (Scanner sc = new Scanner(System.in)) {\n" +
                 "    sc.nextLine();\n" +
                 "} } }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         MethodCallExpr methodCallExpr = Navigator.findMethodCall(cu, "nextLine").get();
         Expression scope = methodCallExpr.getScope().get();
         ResolvedType type = JavaParserFacade.get(new ReflectionTypeSolver()).getType(scope);
-        assertEquals(true, type.isReferenceType());
+        assertTrue(type.isReferenceType());
         assertEquals("java.util.Scanner", type.asReferenceType().getQualifiedName());
     }
 
@@ -146,7 +151,7 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void solveMultiCatchType() {
+    void solveMultiCatchType() {
         String code = "class A {\n" +
                 "        public void foo() {\n" +
                 "            try {\n" +
@@ -160,11 +165,11 @@ public class JavaParserFacadeResolutionTest extends AbstractResolutionTest {
         CatchClause catchClause = Navigator.findNodeOfGivenClass(cu, CatchClause.class);
         Type jpType = catchClause.getParameter().getType();
         ResolvedType jssType = jpType.resolve();
-        assertEquals(true, jssType instanceof ResolvedUnionType);
+        assertTrue(jssType instanceof ResolvedUnionType);
     }
 
     @Test
-    public void classToResolvedTypeViaReflection() {
+    void classToResolvedTypeViaReflection() {
         Class<?> clazz = this.getClass();
         ReflectionTypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
         JavaParserFacade facade = JavaParserFacade.get(reflectionTypeSolver);

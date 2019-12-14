@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -28,10 +28,10 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.BooleanLiteralExprMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-import javax.annotation.Generated;
 import com.github.javaparser.TokenRange;
 import java.util.function.Consumer;
 import java.util.Optional;
+import com.github.javaparser.ast.Generated;
 
 /**
  * The boolean literals.
@@ -40,7 +40,7 @@ import java.util.Optional;
  *
  * @author Julio Vilmar Gesser
  */
-public final class BooleanLiteralExpr extends LiteralExpr {
+public class BooleanLiteralExpr extends LiteralExpr {
 
     private boolean value;
 
@@ -75,9 +75,17 @@ public final class BooleanLiteralExpr extends LiteralExpr {
         v.visit(this, arg);
     }
 
+    /**
+     * The code generator likes to generate an "is" getter for boolean, so this here is the generated version,
+     * but "getValue" does the same and makes more sense.
+     */
     @Generated("com.github.javaparser.generator.core.node.PropertyGenerator")
-    public boolean getValue() {
+    public boolean isValue() {
         return value;
+    }
+
+    public boolean getValue() {
+        return isValue();
     }
 
     @Generated("com.github.javaparser.generator.core.node.PropertyGenerator")

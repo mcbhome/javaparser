@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.generator.core.node;
 
 import com.github.javaparser.ast.CompilationUnit;
@@ -13,11 +34,15 @@ import com.github.javaparser.metamodel.JavaParserMetaModel;
 import com.github.javaparser.metamodel.PropertyMetaModel;
 import com.github.javaparser.utils.SourceRoot;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-import static com.github.javaparser.JavaParser.parseType;
-import static com.github.javaparser.ast.Modifier.FINAL;
-import static com.github.javaparser.ast.Modifier.PUBLIC;
+import static com.github.javaparser.StaticJavaParser.parseType;
+import static com.github.javaparser.ast.Modifier.Keyword.FINAL;
+import static com.github.javaparser.ast.Modifier.Keyword.PUBLIC;
+import static com.github.javaparser.ast.Modifier.createModifierList;
 import static com.github.javaparser.utils.CodeGenerationUtils.f;
 import static com.github.javaparser.utils.Utils.camelCaseToScreaming;
 
@@ -50,7 +75,7 @@ public class PropertyGenerator extends NodeGenerator {
             return;
         }
 
-        final MethodDeclaration setter = new MethodDeclaration(EnumSet.of(PUBLIC), parseType(property.getContainingNodeMetaModel().getTypeNameGenerified()), property.getSetterMethodName());
+        final MethodDeclaration setter = new MethodDeclaration(createModifierList(PUBLIC), parseType(property.getContainingNodeMetaModel().getTypeNameGenerified()), property.getSetterMethodName());
         if (property.getContainingNodeMetaModel().hasWildcard()) {
             setter.setType(parseType("T"));
         }
@@ -90,7 +115,7 @@ public class PropertyGenerator extends NodeGenerator {
     }
 
     private void generateGetter(BaseNodeMetaModel nodeMetaModel, ClassOrInterfaceDeclaration nodeCoid, PropertyMetaModel property) {
-        final MethodDeclaration getter = new MethodDeclaration(EnumSet.of(PUBLIC), parseType(property.getTypeNameForGetter()), property.getGetterMethodName());
+        final MethodDeclaration getter = new MethodDeclaration(createModifierList(PUBLIC), parseType(property.getTypeNameForGetter()), property.getGetterMethodName());
         final BlockStmt body = getter.getBody().get();
         body.getStatements().clear();
         if (property.isOptional()) {
@@ -107,11 +132,7 @@ public class PropertyGenerator extends NodeGenerator {
         String constantName = camelCaseToScreaming(name.startsWith("is") ? name.substring(2) : name);
         EnumConstantDeclaration enumConstantDeclaration = observablePropertyEnum.addEnumConstant(constantName);
         if (isAttribute) {
-            if (property.isEnumSet()) {
-                enumConstantDeclaration.addArgument("Type.MULTIPLE_ATTRIBUTE");
-            } else {
-                enumConstantDeclaration.addArgument("Type.SINGLE_ATTRIBUTE");
-            }
+            enumConstantDeclaration.addArgument("Type.SINGLE_ATTRIBUTE");
         } else {
             if (property.isNodeList()) {
                 enumConstantDeclaration.addArgument("Type.MULTIPLE_REFERENCE");

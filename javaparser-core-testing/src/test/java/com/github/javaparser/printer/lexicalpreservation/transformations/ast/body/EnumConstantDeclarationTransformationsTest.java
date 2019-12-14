@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -22,16 +22,13 @@
 package com.github.javaparser.printer.lexicalpreservation.transformations.ast.body;
 
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.AbstractLexicalPreservingTest;
-import org.junit.Test;
-
-import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 /**
  * Transforming EnumConstantDeclaration and verifying the LexicalPreservation works as expected.
  */
-public class EnumConstantDeclarationTransformationsTest extends AbstractLexicalPreservingTest {
+class EnumConstantDeclarationTransformationsTest extends AbstractLexicalPreservingTest {
 
     protected EnumConstantDeclaration consider(String code) {
         considerCode("enum A { " + code + " }");
@@ -41,7 +38,7 @@ public class EnumConstantDeclarationTransformationsTest extends AbstractLexicalP
     // Name
 
     @Test
-    public void settingName() {
+    void settingName() {
         EnumConstantDeclaration ecd = consider("A");
         ecd.setName("B");
         assertTransformedToString("B", ecd);

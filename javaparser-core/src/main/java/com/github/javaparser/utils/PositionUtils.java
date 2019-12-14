@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -131,9 +131,9 @@ public final class PositionUtils {
         final Range containedRange = contained.getRange().get();
         final Range containerRange = container.getRange().get();
         if (!ignoringAnnotations || PositionUtils.getLastAnnotation(container) == null) {
-            return container.containsWithin(contained);
+            return container.containsWithinRange(contained);
         }
-        if (!container.containsWithin(contained)) {
+        if (!container.containsWithinRange(contained)) {
             return false;
         }
         // if the node is contained, but it comes immediately after the annotations,

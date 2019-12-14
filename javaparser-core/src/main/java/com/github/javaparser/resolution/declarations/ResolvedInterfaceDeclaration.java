@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,6 +21,7 @@
 
 package com.github.javaparser.resolution.declarations;
 
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import java.util.List;
  * @author Federico Tomassetti
  */
 public interface ResolvedInterfaceDeclaration extends ResolvedReferenceTypeDeclaration,
-        ResolvedTypeParametrizable, HasAccessSpecifier {
+        ResolvedTypeParametrizable, HasAccessSpecifier, AssociableToAST<ClassOrInterfaceDeclaration> {
 
     @Override
     default boolean isInterface() {

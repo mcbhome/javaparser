@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -36,7 +36,7 @@ public interface ResolvedDeclaration {
     }
 
     /**
-     * Should return the name or throw a RuntimeException if the name is not available.
+     * Should return the name or return null if the name is not available.
      */
     String getName();
 
@@ -44,6 +44,17 @@ public interface ResolvedDeclaration {
      * Does this declaration represents a class field?
      */
     default boolean isField() {
+        return false;
+    }
+
+    /**
+     * Does this declaration represents a variable?
+     */
+    default boolean isVariable() {
+        return false;
+    }
+
+    default boolean isEnumConstant() {
         return false;
     }
 
@@ -94,5 +105,9 @@ public interface ResolvedDeclaration {
      */
     default ResolvedMethodDeclaration asMethod() {
         throw new UnsupportedOperationException(String.format("%s is not a MethodDeclaration", this));
+    }
+
+    default ResolvedEnumConstantDeclaration asEnumConstant() {
+        throw new UnsupportedOperationException(String.format("%s is not an EnumConstantDeclaration", this));
     }
 }

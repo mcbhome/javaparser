@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,75 +21,90 @@
 
 package com.github.javaparser.ast.nodeTypes;
 
-import com.github.javaparser.JavaParser;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.PrimitiveType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static com.github.javaparser.JavaParser.*;
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parseVariableDeclarationExpr;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class NodeWithVariablesTest {
+class NodeWithVariablesTest {
 
     @Test
-    public void getCommonTypeWorksForNormalVariables() {
+    void getCommonTypeWorksForNormalVariables() {
         VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a,b");
         assertEquals(PrimitiveType.intType(), declaration.getCommonType());
     }
 
     @Test
-    public void getCommonTypeWorksForArrayTypes() {
+    void getCommonTypeWorksForArrayTypes() {
         parseVariableDeclarationExpr("int a[],b[]").getCommonType();
     }
 
-    @Test(expected = AssertionError.class)
-    public void getCommonTypeFailsOnArrayDifferences() {
-        parseVariableDeclarationExpr("int a[],b[][]").getCommonType();
-    }
-
-    @Test(expected = AssertionError.class)
-    public void getCommonTypeFailsOnDodgySetterUsage() {
-        VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a,b");
-        declaration.getVariable(1).setType(String.class);
-        declaration.getCommonType();
-    }
-
-    @Test(expected = AssertionError.class)
-    public void getCommonTypeFailsOnInvalidEmptyVariableList() {
-        VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a");
-        declaration.getVariables().clear();
-        declaration.getCommonType();
+    @Test
+    void getCommonTypeFailsOnArrayDifferences() {
+        assertThrows(AssertionError.class, () -> parseVariableDeclarationExpr("int a[],b[][]").getCommonType());
     }
 
     @Test
-    public void getElementTypeWorksForNormalVariables() {
+    void getCommonTypeFailsOnDodgySetterUsage() {
+        assertThrows(AssertionError.class, () -> {
+            VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a,b");
+            declaration.getVariable(1).setType(String.class);
+            declaration.getCommonType();
+        });
+    }
+
+    @Test
+    void getCommonTypeFailsOnInvalidEmptyVariableList() {
+        assertThrows(AssertionError.class, () -> {
+            VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a");
+            declaration.getVariables().clear();
+            declaration.getCommonType();
+        });
+    }
+
+    @Test
+    void getElementTypeWorksForNormalVariables() {
         VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a,b");
         assertEquals(PrimitiveType.intType(), declaration.getElementType());
     }
 
     @Test
-    public void getElementTypeWorksForArrayTypes() {
+    void getElementTypeWorksForArrayTypes() {
         VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a[],b[]");
         assertEquals(PrimitiveType.intType(), declaration.getElementType());
     }
 
     @Test
-    public void getElementTypeIsOkayWithArrayDifferences() {
+    void getElementTypeIsOkayWithArrayDifferences() {
         parseVariableDeclarationExpr("int a[],b[][]").getElementType();
     }
 
-    @Test(expected = AssertionError.class)
-    public void getElementTypeFailsOnDodgySetterUsage() {
-        VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a,b");
-        declaration.getVariable(1).setType(String.class);
-        declaration.getElementType();
+    @Test
+    void getElementTypeFailsOnDodgySetterUsage() {
+        assertThrows(AssertionError.class, () -> {
+            VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a,b");
+            declaration.getVariable(1).setType(String.class);
+            declaration.getElementType();
+        });
     }
 
-    @Test(expected = AssertionError.class)
-    public void getElementTypeFailsOnInvalidEmptyVariableList() {
-        VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a");
-        declaration.getVariables().clear();
-        declaration.getElementType();
+    @Test
+    void getElementTypeFailsOnInvalidEmptyVariableList() {
+        assertThrows(AssertionError.class, () -> {
+            VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int a");
+            declaration.getVariables().clear();
+            declaration.getElementType();
+        });
     }
 
+    @Test
+    void setAllTypesWorks() {
+        VariableDeclarationExpr declaration = parseVariableDeclarationExpr("int[] a[],b[][]");
+        declaration.setAllTypes(StaticJavaParser.parseType("Dog"));
+        assertEquals("Dog a, b", declaration.toString());
+    }
 }

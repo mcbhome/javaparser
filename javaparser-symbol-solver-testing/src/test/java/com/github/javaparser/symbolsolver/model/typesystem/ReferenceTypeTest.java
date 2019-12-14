@@ -1,33 +1,42 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.model.typesystem;
 
-import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseStart;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.StringProvider;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionClassDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.nio.Buffer;
@@ -36,9 +45,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ReferenceTypeTest {
+class ReferenceTypeTest {
 
     private ReferenceTypeImpl listOfA;
     private ReferenceTypeImpl listOfStrings;
@@ -50,8 +60,8 @@ public class ReferenceTypeTest {
     private ReferenceTypeImpl string;
     private TypeSolver typeSolver;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         typeSolver = new ReflectionTypeSolver();
         object = new ReferenceTypeImpl(new ReflectionClassDeclaration(Object.class, typeSolver), typeSolver);
         string = new ReferenceTypeImpl(new ReflectionClassDeclaration(String.class, typeSolver), typeSolver);
@@ -76,7 +86,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testDerivationOfTypeParameters() {
+    void testDerivationOfTypeParameters() {
         ReflectionTypeSolver typeSolver = new ReflectionTypeSolver();
         ReferenceTypeImpl ref1 = new ReferenceTypeImpl(typeSolver.solveType(LinkedList.class.getCanonicalName()), typeSolver);
         assertEquals(1, ref1.typeParametersValues().size());
@@ -85,7 +95,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsArray() {
+    void testIsArray() {
         assertEquals(false, object.isArray());
         assertEquals(false, string.isArray());
         assertEquals(false, listOfA.isArray());
@@ -93,7 +103,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsPrimitive() {
+    void testIsPrimitive() {
         assertEquals(false, object.isPrimitive());
         assertEquals(false, string.isPrimitive());
         assertEquals(false, listOfA.isPrimitive());
@@ -101,7 +111,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsNull() {
+    void testIsNull() {
         assertEquals(false, object.isNull());
         assertEquals(false, string.isNull());
         assertEquals(false, listOfA.isNull());
@@ -109,7 +119,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsReference() {
+    void testIsReference() {
         assertEquals(true, object.isReference());
         assertEquals(true, string.isReference());
         assertEquals(true, listOfA.isReference());
@@ -117,7 +127,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsReferenceType() {
+    void testIsReferenceType() {
         assertEquals(true, object.isReferenceType());
         assertEquals(true, string.isReferenceType());
         assertEquals(true, listOfA.isReferenceType());
@@ -125,7 +135,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsVoid() {
+    void testIsVoid() {
         assertEquals(false, object.isVoid());
         assertEquals(false, string.isVoid());
         assertEquals(false, listOfA.isVoid());
@@ -133,7 +143,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsTypeVariable() {
+    void testIsTypeVariable() {
         assertEquals(false, object.isTypeVariable());
         assertEquals(false, string.isTypeVariable());
         assertEquals(false, listOfA.isTypeVariable());
@@ -141,25 +151,25 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testAsReferenceTypeUsage() {
+    void testAsReferenceTypeUsage() {
         assertTrue(object == object.asReferenceType());
         assertTrue(string == string.asReferenceType());
         assertTrue(listOfA == listOfA.asReferenceType());
         assertTrue(listOfStrings == listOfStrings.asReferenceType());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testAsTypeParameter() {
-        object.asTypeParameter();
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testAsArrayTypeUsage() {
-        object.asArrayType();
+    @Test
+    void testAsTypeParameter() {
+        assertThrows(UnsupportedOperationException.class, () -> object.asTypeParameter());
     }
 
     @Test
-    public void testAsDescribe() {
+    void testAsArrayTypeUsage() {
+        assertThrows(UnsupportedOperationException.class, () -> object.asArrayType());
+    }
+
+    @Test
+    void testAsDescribe() {
         assertEquals("java.lang.Object", object.describe());
         assertEquals("java.lang.String", string.describe());
         assertEquals("java.util.List<A>", listOfA.describe());
@@ -167,7 +177,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testReplaceParam() {
+    void testReplaceParam() {
         ResolvedTypeParameterDeclaration tpA = ResolvedTypeParameterDeclaration.onType("A", "foo.Bar", Collections.emptyList());
         assertTrue(object == object.replaceTypeVariables(tpA, object));
         assertTrue(string == string.replaceTypeVariables(tpA, object));
@@ -176,7 +186,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsAssignableBySimple() {
+    void testIsAssignableBySimple() {
         assertEquals(true, object.isAssignableBy(string));
         assertEquals(false, string.isAssignableBy(object));
         assertEquals(false, listOfStrings.isAssignableBy(listOfA));
@@ -194,23 +204,23 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsAssignableByBoxedPrimitive(){
-        ResolvedReferenceType numberType = new ReferenceTypeImpl(new ReflectionClassDeclaration(Number.class, typeSolver),typeSolver);
-        ResolvedReferenceType intType = new ReferenceTypeImpl(new ReflectionClassDeclaration(Integer.class, typeSolver),typeSolver);
-        ResolvedReferenceType doubleType = new ReferenceTypeImpl(new ReflectionClassDeclaration(Double.class, typeSolver),typeSolver);
+    void testIsAssignableByBoxedPrimitive() {
+        ResolvedReferenceType numberType = new ReferenceTypeImpl(new ReflectionClassDeclaration(Number.class, typeSolver), typeSolver);
+        ResolvedReferenceType intType = new ReferenceTypeImpl(new ReflectionClassDeclaration(Integer.class, typeSolver), typeSolver);
+        ResolvedReferenceType doubleType = new ReferenceTypeImpl(new ReflectionClassDeclaration(Double.class, typeSolver), typeSolver);
 
-        assertEquals(true,  numberType.isAssignableBy(ResolvedPrimitiveType.INT));
-        assertEquals(true,  numberType.isAssignableBy(ResolvedPrimitiveType.DOUBLE));
-        assertEquals(true,  numberType.isAssignableBy(ResolvedPrimitiveType.SHORT));
-        assertEquals(true,  numberType.isAssignableBy(ResolvedPrimitiveType.LONG));
-        assertEquals(true,  numberType.isAssignableBy(ResolvedPrimitiveType.FLOAT));
+        assertEquals(true, numberType.isAssignableBy(ResolvedPrimitiveType.INT));
+        assertEquals(true, numberType.isAssignableBy(ResolvedPrimitiveType.DOUBLE));
+        assertEquals(true, numberType.isAssignableBy(ResolvedPrimitiveType.SHORT));
+        assertEquals(true, numberType.isAssignableBy(ResolvedPrimitiveType.LONG));
+        assertEquals(true, numberType.isAssignableBy(ResolvedPrimitiveType.FLOAT));
         assertEquals(false, numberType.isAssignableBy(ResolvedPrimitiveType.BOOLEAN));
-        assertEquals(true,  intType.isAssignableBy(ResolvedPrimitiveType.INT));
-        assertEquals(true,  doubleType.isAssignableBy(ResolvedPrimitiveType.DOUBLE));
+        assertEquals(true, intType.isAssignableBy(ResolvedPrimitiveType.INT));
+        assertEquals(true, doubleType.isAssignableBy(ResolvedPrimitiveType.DOUBLE));
     }
 
     @Test
-    public void testIsAssignableByGenerics() {
+    void testIsAssignableByGenerics() {
         assertEquals(false, listOfStrings.isAssignableBy(listOfWildcardExtendsString));
         assertEquals(false, listOfStrings.isAssignableBy(listOfWildcardExtendsString));
         assertEquals(true, listOfWildcardExtendsString.isAssignableBy(listOfStrings));
@@ -220,7 +230,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testIsAssignableByGenericsInheritance() {
+    void testIsAssignableByGenericsInheritance() {
         assertEquals(true, collectionOfString.isAssignableBy(collectionOfString));
         assertEquals(true, collectionOfString.isAssignableBy(listOfStrings));
         assertEquals(true, collectionOfString.isAssignableBy(linkedListOfString));
@@ -235,7 +245,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsConsideringTypeParameters() {
+    void testGetAllAncestorsConsideringTypeParameters() {
         assertTrue(linkedListOfString.getAllAncestors().contains(object));
         assertTrue(linkedListOfString.getAllAncestors().contains(listOfStrings));
         assertTrue(linkedListOfString.getAllAncestors().contains(collectionOfString));
@@ -259,7 +269,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsConsideringGenericsCases() {
+    void testGetAllAncestorsConsideringGenericsCases() {
         ReferenceTypeImpl foo = new ReferenceTypeImpl(new ReflectionClassDeclaration(Foo.class, typeSolver), typeSolver);
         ReferenceTypeImpl bar = new ReferenceTypeImpl(new ReflectionClassDeclaration(Bar.class, typeSolver), typeSolver);
         ReferenceTypeImpl left, right;
@@ -389,7 +399,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void charSequenceIsAssignableToObject() {
+    void charSequenceIsAssignableToObject() {
         TypeSolver typeSolver = new ReflectionTypeSolver();
         ReferenceTypeImpl charSequence = new ReferenceTypeImpl(new ReflectionInterfaceDeclaration(CharSequence.class, typeSolver), typeSolver);
         ReferenceTypeImpl object = new ReferenceTypeImpl(new ReflectionClassDeclaration(Object.class, typeSolver), typeSolver);
@@ -398,7 +408,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetFieldTypeExisting() {
+    void testGetFieldTypeExisting() {
         class Foo<A> {
             List<A> elements;
         }
@@ -426,7 +436,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetFieldTypeUnexisting() {
+    void testGetFieldTypeUnexisting() {
         class Foo<A> {
             List<A> elements;
         }
@@ -444,7 +454,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testTypeParamValue() {
+    void testTypeParamValue() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedClassDeclaration arraylist = new ReflectionClassDeclaration(ArrayList.class, typeResolver);
         ResolvedClassDeclaration abstractList = new ReflectionClassDeclaration(AbstractList.class, typeResolver);
@@ -463,7 +473,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsOnRawType() {
+    void testGetAllAncestorsOnRawType() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedClassDeclaration arraylist = new ReflectionClassDeclaration(ArrayList.class, typeResolver);
         ResolvedReferenceType rawArrayList = new ReferenceTypeImpl(arraylist, typeResolver);
@@ -485,7 +495,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForInterface() {
+    void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForInterface() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedInterfaceDeclaration list = new ReflectionInterfaceDeclaration(List.class, typeResolver);
         ResolvedType string = new ReferenceTypeImpl(new ReflectionClassDeclaration(String.class, typeResolver), typeResolver);
@@ -501,7 +511,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForClassAbstractCollection() {
+    void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForClassAbstractCollection() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedClassDeclaration abstractCollection = new ReflectionClassDeclaration(AbstractCollection.class, typeResolver);
         ResolvedType string = new ReferenceTypeImpl(new ReflectionClassDeclaration(String.class, typeResolver), typeResolver);
@@ -517,7 +527,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForClassAbstractList() {
+    void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForClassAbstractList() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedClassDeclaration abstractList = new ReflectionClassDeclaration(AbstractList.class, typeResolver);
         ResolvedType string = new ReferenceTypeImpl(new ReflectionClassDeclaration(String.class, typeResolver), typeResolver);
@@ -535,7 +545,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForClassArrayList() {
+    void testGetAllAncestorsOnTypeWithSpecifiedTypeParametersForClassArrayList() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedClassDeclaration arraylist = new ReflectionClassDeclaration(ArrayList.class, typeResolver);
         ResolvedType string = new ReferenceTypeImpl(new ReflectionClassDeclaration(String.class, typeResolver), typeResolver);
@@ -557,7 +567,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testTypeParametersValues() {
+    void testTypeParametersValues() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedReferenceType stream = new ReferenceTypeImpl(new ReflectionInterfaceDeclaration(Stream.class, typeResolver), typeResolver);
         assertEquals(1, stream.typeParametersValues().size());
@@ -565,7 +575,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testReplaceTypeVariables() {
+    void testReplaceTypeVariables() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedInterfaceDeclaration streamInterface = new ReflectionInterfaceDeclaration(Stream.class, typeResolver);
         ResolvedReferenceType stream = new ReferenceTypeImpl(streamInterface, typeResolver);
@@ -583,7 +593,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testReplaceTypeVariablesWithLambdaInBetween() {
+    void testReplaceTypeVariablesWithLambdaInBetween() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedInterfaceDeclaration streamInterface = new ReflectionInterfaceDeclaration(Stream.class, typeResolver);
         ResolvedReferenceType stream = new ReferenceTypeImpl(streamInterface, typeResolver);
@@ -601,12 +611,12 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testDirectAncestorsOfObject() {
+    void testDirectAncestorsOfObject() {
         assertEquals(0, object.getDirectAncestors().size());
     }
 
     @Test
-    public void testDirectAncestorsOfInterface() {
+    void testDirectAncestorsOfInterface() {
         ResolvedReferenceType iterableOfString = new ReferenceTypeImpl(
                 new ReflectionInterfaceDeclaration(Iterable.class, typeSolver),
                 ImmutableList.of(new ReferenceTypeImpl(new ReflectionClassDeclaration(String.class, typeSolver), typeSolver)), typeSolver);
@@ -617,7 +627,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testDirectAncestorsOfInterfaceExtendingInterface() {
+    void testDirectAncestorsOfInterfaceExtendingInterface() {
         assertEquals(2, collectionOfString.getDirectAncestors().size());
         ResolvedReferenceType ancestor1 = collectionOfString.getDirectAncestors().get(0);
         assertEquals("java.lang.Iterable", ancestor1.getQualifiedName());
@@ -630,7 +640,7 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testDirectAncestorsOfClassWithoutSuperClassOrInterfaces() {
+    void testDirectAncestorsOfClassWithoutSuperClassOrInterfaces() {
         ResolvedReferenceType buffer = new ReferenceTypeImpl(
                 new ReflectionClassDeclaration(Buffer.class, typeSolver), typeSolver);
         Set<String> ancestors = buffer.getDirectAncestors().stream().map(a -> a.describe()).collect(Collectors.toSet());
@@ -638,7 +648,15 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testDirectAncestorsOfClassWithSuperClass() {
+    void testDirectAncestorsOfObjectClass() {
+        ResolvedReferenceType object = new ReferenceTypeImpl(
+                new ReflectionClassDeclaration(Object.class, typeSolver), typeSolver);
+        Set<String> ancestors = object.getDirectAncestors().stream().map(a -> a.describe()).collect(Collectors.toSet());
+        assertEquals(new HashSet<>(), ancestors);
+    }
+
+    @Test
+    void testDirectAncestorsOfClassWithSuperClass() {
         ResolvedReferenceType charbuffer = new ReferenceTypeImpl(
                 new ReflectionClassDeclaration(CharBuffer.class, typeSolver), typeSolver);
         Set<String> ancestors = charbuffer.getDirectAncestors().stream().map(a -> a.describe()).collect(Collectors.toSet());
@@ -647,12 +665,63 @@ public class ReferenceTypeTest {
     }
 
     @Test
-    public void testDirectAncestorsOfClassWithInterfaces() {
+    void testDirectAncestorsOfClassWithInterfaces() {
         Set<String> ancestors = string.getDirectAncestors().stream().map(a -> a.describe()).collect(Collectors.toSet());
-        assertEquals(new HashSet<>(Arrays.asList("java.lang.CharSequence",
+        assertTrue(ancestors.containsAll(Arrays.asList("java.lang.CharSequence",
                 "java.lang.Object",
                 "java.lang.Comparable<java.lang.String>",
-                "java.io.Serializable")), ancestors);
+                "java.io.Serializable")));
     }
 
+    @Test
+    void testDeclaredFields() {
+        TypeSolver typeSolver = new ReflectionTypeSolver();
+        String code = "class A { private int i; char c; public long l; } class B extends A { private float f; boolean b; };";
+        ParserConfiguration parserConfiguration = new ParserConfiguration();
+        parserConfiguration.setSymbolResolver(new JavaSymbolSolver(typeSolver));
+
+        CompilationUnit cu = new JavaParser(parserConfiguration)
+                .parse(ParseStart.COMPILATION_UNIT, new StringProvider(code)).getResult().get();
+
+        ClassOrInterfaceDeclaration classA = cu.getClassByName("A").get();
+        ClassOrInterfaceDeclaration classB = cu.getClassByName("B").get();
+
+        ResolvedReferenceType rtA = new ReferenceTypeImpl(classA.resolve(), typeSolver);
+        ResolvedReferenceType rtB = new ReferenceTypeImpl(classB.resolve(), typeSolver);
+
+        assertEquals(3, rtA.getDeclaredFields().size());
+        assertTrue(rtA.getDeclaredFields().stream().anyMatch(f -> f.getName().equals("i")));
+        assertTrue(rtA.getDeclaredFields().stream().anyMatch(f -> f.getName().equals("c")));
+        assertTrue(rtA.getDeclaredFields().stream().anyMatch(f -> f.getName().equals("l")));
+
+        assertEquals(2, rtB.getDeclaredFields().size());
+        assertTrue(rtB.getDeclaredFields().stream().anyMatch(f -> f.getName().equals("f")));
+        assertTrue(rtB.getDeclaredFields().stream().anyMatch(f -> f.getName().equals("b")));
+    }
+
+    @Test
+    void testGetAllFieldsVisibleToInheritors() {
+        TypeSolver typeSolver = new ReflectionTypeSolver();
+        String code = "class A { private int i; char c; public long l; } class B extends A { private float f; boolean b; };";
+        ParserConfiguration parserConfiguration = new ParserConfiguration();
+        parserConfiguration.setSymbolResolver(new JavaSymbolSolver(typeSolver));
+
+        CompilationUnit cu = new JavaParser(parserConfiguration)
+                .parse(ParseStart.COMPILATION_UNIT, new StringProvider(code)).getResult().get();
+
+        ClassOrInterfaceDeclaration classA = cu.getClassByName("A").get();
+        ClassOrInterfaceDeclaration classB = cu.getClassByName("B").get();
+
+        ResolvedReferenceType rtA = new ReferenceTypeImpl(classA.resolve(), typeSolver);
+        ResolvedReferenceType rtB = new ReferenceTypeImpl(classB.resolve(), typeSolver);
+
+        assertEquals(2, rtA.getAllFieldsVisibleToInheritors().size());
+        assertTrue(rtA.getAllFieldsVisibleToInheritors().stream().anyMatch(f -> f.getName().equals("c")));
+        assertTrue(rtA.getAllFieldsVisibleToInheritors().stream().anyMatch(f -> f.getName().equals("l")));
+
+        assertEquals(3, rtB.getAllFieldsVisibleToInheritors().size());
+        assertTrue(rtB.getAllFieldsVisibleToInheritors().stream().anyMatch(f -> f.getName().equals("c")));
+        assertTrue(rtB.getAllFieldsVisibleToInheritors().stream().anyMatch(f -> f.getName().equals("l")));
+        assertTrue(rtB.getAllFieldsVisibleToInheritors().stream().anyMatch(f -> f.getName().equals("b")));
+    }
 }

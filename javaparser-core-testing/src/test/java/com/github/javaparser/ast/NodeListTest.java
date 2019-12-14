@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,7 +21,6 @@
 
 package com.github.javaparser.ast;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.expr.Name;
@@ -29,19 +28,17 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.observer.AstObserver;
 import com.github.javaparser.ast.observer.ObservableProperty;
 import com.github.javaparser.ast.type.PrimitiveType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.github.javaparser.StaticJavaParser.parse;
 import static com.github.javaparser.ast.NodeList.nodeList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class NodeListTest {
+class NodeListTest {
 
     private AstObserver createObserver(List<String> changes) {
         return new AstObserver() {
@@ -69,14 +66,14 @@ public class NodeListTest {
     }
 
     private FieldDeclaration createIntField(String name) {
-        return new FieldDeclaration(EnumSet.noneOf(Modifier.class), PrimitiveType.intType(), name);
+        return new FieldDeclaration(new NodeList<>(), PrimitiveType.intType(), name);
     }
 
     @Test
-    public void addAllWithoutIndex() {
+    void addAllWithoutIndex() {
         List<String> changes = new LinkedList<>();
         String code = "class A { void foo(int p) { }}";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -87,10 +84,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void addAllWithIndex() {
+    void addAllWithIndex() {
         List<String> changes = new LinkedList<>();
         String code = "class A { void foo(int p) { }}";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -101,10 +98,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void clear() {
+    void clear() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -115,10 +112,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void set() {
+    void set() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -128,10 +125,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void removeNode() {
+    void removeNode() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; int d; int e; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -140,10 +137,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void removeFirstNode() {
+    void removeFirstNode() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; int d; int e; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -152,7 +149,7 @@ public class NodeListTest {
         assertEquals(cd.getMembers().size(), 4);
 
         for (int i = 3; i >= 0; i--) {
-            assertTrue(cd.getMembers().removeFirst() != null);
+            assertNotNull(cd.getMembers().removeFirst());
             assertEquals(cd.getMembers().size(), i);
         }
 
@@ -160,10 +157,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void removeLastNode() {
+    void removeLastNode() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; int d; int e; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -172,7 +169,7 @@ public class NodeListTest {
         assertEquals(cd.getMembers().size(), 4);
 
         for (int i = 3; i >= 0; i--) {
-            assertTrue(cd.getMembers().removeLast() != null);
+            assertNotNull(cd.getMembers().removeLast());
             assertEquals(cd.getMembers().size(), i);
         }
 
@@ -180,10 +177,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void removeObject() {
+    void removeObject() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; int d; int e; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -192,10 +189,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void removeAll() {
+    void removeAll() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; int d; int e; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -205,10 +202,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void retainAll() {
+    void retainAll() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; int d; int e; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -219,10 +216,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void replaceAll() {
+    void replaceAll() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int b; int c; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -238,10 +235,10 @@ public class NodeListTest {
     }
 
     @Test
-    public void removeIf() {
+    void removeIf() {
         List<String> changes = new LinkedList<>();
         String code = "class A { int a; int longName; int c; }";
-        CompilationUnit cu = JavaParser.parse(code);
+        CompilationUnit cu = parse(code);
         ClassOrInterfaceDeclaration cd = cu.getClassByName("A").get();
         cd.getMembers().register(createObserver(changes));
 
@@ -250,12 +247,12 @@ public class NodeListTest {
     }
 
     @Test
-    public void replace() {
+    void replace() {
         final NodeList<Name> list = nodeList(new Name("a"), new Name("b"), new Name("c"));
 
         final boolean replaced = list.replace(new Name("b"), new Name("z"));
 
-        assertEquals(true, replaced);
+        assertTrue(replaced);
         assertEquals(3, list.size());
         assertEquals("a", list.get(0).asString());
         assertEquals("z", list.get(1).asString());
@@ -263,14 +260,14 @@ public class NodeListTest {
     }
 
     @Test
-    public void toStringTest() {
+    void toStringTest() {
         final NodeList<Name> list = nodeList(new Name("abc"), new Name("bcd"), new Name("cde"));
 
         assertEquals("[abc, bcd, cde]", list.toString());
     }
 
     @Test
-    public void addFirst() {
+    void addFirst() {
         final NodeList<Name> list = nodeList(new Name("abc"), new Name("bcd"), new Name("cde"));
 
         list.addFirst(new Name("xxx"));
@@ -279,7 +276,7 @@ public class NodeListTest {
     }
 
     @Test
-    public void addLast() {
+    void addLast() {
         final NodeList<Name> list = nodeList(new Name("abc"), new Name("bcd"), new Name("cde"));
 
         list.addLast(new Name("xxx"));
@@ -288,7 +285,7 @@ public class NodeListTest {
     }
 
     @Test
-    public void addBefore() {
+    void addBefore() {
         Name n = new Name("bcd");
         final NodeList<Name> list = nodeList(new Name("abc"), n, new Name("cde"));
 
@@ -298,7 +295,7 @@ public class NodeListTest {
     }
 
     @Test
-    public void addAfter() {
+    void addAfter() {
         Name n = new Name("bcd");
         final NodeList<Name> list = nodeList(new Name("abc"), n, new Name("cde"));
 
@@ -308,7 +305,7 @@ public class NodeListTest {
     }
 
     @Test
-    public void addBeforeFirst() {
+    void addBeforeFirst() {
         Name abc = new Name("abc");
         final NodeList<Name> list = nodeList(abc, new Name("bcd"), new Name("cde"));
 
@@ -318,7 +315,7 @@ public class NodeListTest {
     }
 
     @Test
-    public void addAfterLast() {
+    void addAfterLast() {
         Name cde = new Name("cde");
         final NodeList<Name> list = nodeList(new Name("abc"), new Name("bcd"), cde);
 

@@ -1,6 +1,26 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.ast.modules;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.AllFieldsConstructor;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
@@ -14,20 +34,15 @@ import com.github.javaparser.ast.visitor.GenericVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
 import com.github.javaparser.metamodel.ModuleDeclarationMetaModel;
-
-import java.util.Arrays;
-import java.util.List;
-
+import static com.github.javaparser.StaticJavaParser.parseModuleDirective;
 import static com.github.javaparser.utils.Utils.assertNotNull;
-
-import javax.annotation.Generated;
-
 import com.github.javaparser.TokenRange;
+import com.github.javaparser.ast.Generated;
 
 /**
  * A Java 9 Jigsaw module declaration. <code>@Foo module com.github.abc { requires a.B; }</code>
  */
-public final class ModuleDeclaration extends Node implements NodeWithName<ModuleDeclaration>, NodeWithAnnotations<ModuleDeclaration> {
+public class ModuleDeclaration extends Node implements NodeWithName<ModuleDeclaration>, NodeWithAnnotations<ModuleDeclaration> {
 
     private Name name;
 
@@ -35,7 +50,7 @@ public final class ModuleDeclaration extends Node implements NodeWithName<Module
 
     private boolean isOpen;
 
-    private NodeList<ModuleStmt> moduleStmts;
+    private NodeList<ModuleDirective> directives;
 
     public ModuleDeclaration() {
         this(null, new NodeList<>(), new Name(), false, new NodeList<>());
@@ -46,20 +61,20 @@ public final class ModuleDeclaration extends Node implements NodeWithName<Module
     }
 
     @AllFieldsConstructor
-    public ModuleDeclaration(NodeList<AnnotationExpr> annotations, Name name, boolean isOpen, NodeList<ModuleStmt> moduleStmts) {
-        this(null, annotations, name, isOpen, moduleStmts);
+    public ModuleDeclaration(NodeList<AnnotationExpr> annotations, Name name, boolean isOpen, NodeList<ModuleDirective> directives) {
+        this(null, annotations, name, isOpen, directives);
     }
 
     /**
      * This constructor is used by the parser and is considered private.
      */
     @Generated("com.github.javaparser.generator.core.node.MainConstructorGenerator")
-    public ModuleDeclaration(TokenRange tokenRange, NodeList<AnnotationExpr> annotations, Name name, boolean isOpen, NodeList<ModuleStmt> moduleStmts) {
+    public ModuleDeclaration(TokenRange tokenRange, NodeList<AnnotationExpr> annotations, Name name, boolean isOpen, NodeList<ModuleDirective> directives) {
         super(tokenRange);
         setAnnotations(annotations);
         setName(name);
         setOpen(isOpen);
-        setModuleStmts(moduleStmts);
+        setDirectives(directives);
         customInitialization();
     }
 
@@ -124,9 +139,9 @@ public final class ModuleDeclaration extends Node implements NodeWithName<Module
                 return true;
             }
         }
-        for (int i = 0; i < moduleStmts.size(); i++) {
-            if (moduleStmts.get(i) == node) {
-                moduleStmts.remove(i);
+        for (int i = 0; i < directives.size(); i++) {
+            if (directives.get(i) == node) {
+                directives.remove(i);
                 return true;
             }
         }
@@ -149,21 +164,21 @@ public final class ModuleDeclaration extends Node implements NodeWithName<Module
     }
 
     @Generated("com.github.javaparser.generator.core.node.PropertyGenerator")
-    public NodeList<ModuleStmt> getModuleStmts() {
-        return moduleStmts;
+    public NodeList<ModuleDirective> getDirectives() {
+        return directives;
     }
 
     @Generated("com.github.javaparser.generator.core.node.PropertyGenerator")
-    public ModuleDeclaration setModuleStmts(final NodeList<ModuleStmt> moduleStmts) {
-        assertNotNull(moduleStmts);
-        if (moduleStmts == this.moduleStmts) {
+    public ModuleDeclaration setDirectives(final NodeList<ModuleDirective> directives) {
+        assertNotNull(directives);
+        if (directives == this.directives) {
             return (ModuleDeclaration) this;
         }
-        notifyPropertyChange(ObservableProperty.MODULE_STMTS, this.moduleStmts, moduleStmts);
-        if (this.moduleStmts != null)
-            this.moduleStmts.setParentNode(null);
-        this.moduleStmts = moduleStmts;
-        setAsParentNodeOf(moduleStmts);
+        notifyPropertyChange(ObservableProperty.DIRECTIVES, this.directives, directives);
+        if (this.directives != null)
+            this.directives.setParentNode(null);
+        this.directives = directives;
+        setAsParentNodeOf(directives);
         return this;
     }
 
@@ -190,9 +205,9 @@ public final class ModuleDeclaration extends Node implements NodeWithName<Module
                 return true;
             }
         }
-        for (int i = 0; i < moduleStmts.size(); i++) {
-            if (moduleStmts.get(i) == node) {
-                moduleStmts.set(i, (ModuleStmt) replacementNode);
+        for (int i = 0; i < directives.size(); i++) {
+            if (directives.get(i) == node) {
+                directives.set(i, (ModuleDirective) replacementNode);
                 return true;
             }
         }
@@ -207,11 +222,11 @@ public final class ModuleDeclaration extends Node implements NodeWithName<Module
      * Add a directive to the module, like "exports R.S to T1.U1, T2.U2;"
      */
     public ModuleDeclaration addDirective(String directive) {
-        return addDirective(JavaParser.parseModuleDirective(directive));
+        return addDirective(parseModuleDirective(directive));
     }
 
-    public ModuleDeclaration addDirective(ModuleStmt directive) {
-        getModuleStmts().add(directive);
+    public ModuleDeclaration addDirective(ModuleDirective directive) {
+        getDirectives().add(directive);
         return this;
     }
 }

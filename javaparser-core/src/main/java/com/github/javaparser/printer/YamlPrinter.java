@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -69,8 +69,7 @@ public class YamlPrinter {
 
         level++;
         for (PropertyMetaModel a : attributes) {
-            builder.append(System.lineSeparator() + indent(level) + a.getName() + ": \""
-                    + a.getValue(node).toString() + "\"");
+            builder.append(System.lineSeparator() + indent(level) + a.getName() + ": " + escapeValue(a.getValue(node).toString()));
         }
 
         for (PropertyMetaModel sn : subNodes) {
@@ -97,5 +96,20 @@ public class YamlPrinter {
             for (int j = 0; j < NUM_SPACES_FOR_INDENT; j++)
                 sb.append(" ");
         return sb.toString();
+    }
+
+    private String escapeValue(String value) {
+        return "\"" + value
+                .replace("\\", "\\\\")
+                .replaceAll("\"", "\\\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\f", "\\f")
+                .replace("\b", "\\b")
+                .replace("\t", "\\t") + "\"";
+    }
+
+    public static void print(Node node) {
+        System.out.println(new YamlPrinter(true).output(node));
     }
 }

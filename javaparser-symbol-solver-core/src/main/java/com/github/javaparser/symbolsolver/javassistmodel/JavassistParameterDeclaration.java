@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javassistmodel;
@@ -28,12 +33,14 @@ public class JavassistParameterDeclaration implements ResolvedParameterDeclarati
     private ResolvedType type;
     private TypeSolver typeSolver;
     private boolean variadic;
+    private String name;
 
-    public JavassistParameterDeclaration(CtClass type, TypeSolver typeSolver, boolean variadic) {
-        this(JavassistFactory.typeUsageFor(type, typeSolver), typeSolver, variadic);
+    public JavassistParameterDeclaration(CtClass type, TypeSolver typeSolver, boolean variadic, String name) {
+        this(JavassistFactory.typeUsageFor(type, typeSolver), typeSolver, variadic, name);
     }
 
-    public JavassistParameterDeclaration(ResolvedType type, TypeSolver typeSolver, boolean variadic) {
+    public JavassistParameterDeclaration(ResolvedType type, TypeSolver typeSolver, boolean variadic, String name) {
+        this.name = name;
         this.type = type;
         this.typeSolver = typeSolver;
         this.variadic = variadic;
@@ -49,18 +56,23 @@ public class JavassistParameterDeclaration implements ResolvedParameterDeclarati
     }
 
     @Override
+    public boolean hasName() {
+        return name != null;
+    }
+
+    @Override
     public String getName() {
-        throw new UnsupportedOperationException();
+        return name;
     }
 
     @Override
     public boolean isField() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override
     public boolean isParameter() {
-        throw new UnsupportedOperationException();
+        return true;
     }
 
     @Override
@@ -70,7 +82,7 @@ public class JavassistParameterDeclaration implements ResolvedParameterDeclarati
 
     @Override
     public boolean isType() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override

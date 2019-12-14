@@ -1,52 +1,57 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparsermodel.declarations;
 
 import com.github.javaparser.ast.AccessSpecifier;
-import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
+import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * @author Federico Tomassetti
  */
-public class JavaParserConstructorDeclaration implements ResolvedConstructorDeclaration {
+public class JavaParserConstructorDeclaration<N extends ResolvedReferenceTypeDeclaration> implements ResolvedConstructorDeclaration {
 
-    private ResolvedClassDeclaration classDeclaration;
+    private N declaringType;
     private com.github.javaparser.ast.body.ConstructorDeclaration wrappedNode;
     private TypeSolver typeSolver;
 
-    JavaParserConstructorDeclaration(ResolvedClassDeclaration classDeclaration, com.github.javaparser.ast.body.ConstructorDeclaration wrappedNode,
+    JavaParserConstructorDeclaration(N declaringType, com.github.javaparser.ast.body.ConstructorDeclaration wrappedNode,
                                      TypeSolver typeSolver) {
-        this.classDeclaration = classDeclaration;
+        this.declaringType = declaringType;
         this.wrappedNode = wrappedNode;
         this.typeSolver = typeSolver;
     }
 
     @Override
-    public ResolvedClassDeclaration declaringType() {
-        return classDeclaration;
+    public N declaringType() {
+        return declaringType;
     }
 
     @Override
@@ -64,7 +69,7 @@ public class JavaParserConstructorDeclaration implements ResolvedConstructorDecl
 
     @Override
     public String getName() {
-        return this.classDeclaration.getName();
+        return this.declaringType.getName();
     }
 
     /**
@@ -78,7 +83,7 @@ public class JavaParserConstructorDeclaration implements ResolvedConstructorDecl
     
     @Override
     public AccessSpecifier accessSpecifier() {
-        return Helper.toAccessLevel(wrappedNode.getModifiers());
+        return wrappedNode.getAccessSpecifier();
     }
 
     @Override
@@ -99,5 +104,10 @@ public class JavaParserConstructorDeclaration implements ResolvedConstructorDecl
         }
         return JavaParserFacade.get(typeSolver)
                 .convert(wrappedNode.getThrownExceptions().get(index), wrappedNode);
+    }
+
+    @Override
+    public Optional<ConstructorDeclaration> toAst() {
+        return Optional.of(wrappedNode);
     }
 }

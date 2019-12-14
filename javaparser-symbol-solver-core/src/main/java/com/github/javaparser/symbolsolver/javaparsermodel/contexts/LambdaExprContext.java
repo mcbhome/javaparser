@@ -1,21 +1,27 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparsermodel.contexts;
 
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
@@ -53,7 +59,7 @@ public class LambdaExprContext extends AbstractJavaParserContext<LambdaExpr> {
     }
 
     @Override
-    public Optional<Value> solveSymbolAsValue(String name, TypeSolver typeSolver) {
+    public Optional<Value> solveSymbolAsValue(String name) {
         for (Parameter parameter : wrappedNode.getParameters()) {
             SymbolDeclarator sb = JavaParserFactory.getSymbolDeclarator(parameter, typeSolver);
             int index = 0;
@@ -134,11 +140,11 @@ public class LambdaExprContext extends AbstractJavaParserContext<LambdaExpr> {
         }
 
         // if nothing is found we should ask the parent context
-        return getParent().solveSymbolAsValue(name, typeSolver);
+        return getParent().solveSymbolAsValue(name);
     }
 
     @Override
-    public SymbolReference<? extends ResolvedValueDeclaration> solveSymbol(String name, TypeSolver typeSolver) {
+    public SymbolReference<? extends ResolvedValueDeclaration> solveSymbol(String name) {
         for (Parameter parameter : wrappedNode.getParameters()) {
             SymbolDeclarator sb = JavaParserFactory.getSymbolDeclarator(parameter, typeSolver);
             SymbolReference<ResolvedValueDeclaration> symbolReference = solveWith(sb, name);
@@ -148,25 +154,33 @@ public class LambdaExprContext extends AbstractJavaParserContext<LambdaExpr> {
         }
 
         // if nothing is found we should ask the parent context
-        return getParent().solveSymbol(name, typeSolver);
+        return getParent().solveSymbol(name);
     }
 
     @Override
-    public SymbolReference<ResolvedTypeDeclaration> solveType(String name, TypeSolver typeSolver) {
-        return getParent().solveType(name, typeSolver);
+    public SymbolReference<ResolvedTypeDeclaration> solveType(String name) {
+        return getParent().solveType(name);
     }
 
     @Override
     public SymbolReference<ResolvedMethodDeclaration> solveMethod(
-            String name, List<ResolvedType> argumentsTypes, boolean staticOnly, TypeSolver typeSolver) {
-        return getParent().solveMethod(name, argumentsTypes, false, typeSolver);
+            String name, List<ResolvedType> argumentsTypes, boolean staticOnly) {
+        return getParent().solveMethod(name, argumentsTypes, false);
+    }
+
+    @Override
+    public List<Parameter> parametersExposedToChild(Node child) {
+        if (child == wrappedNode.getBody()) {
+            return wrappedNode.getParameters();
+        }
+        return Collections.emptyList();
     }
 
     ///
     /// Protected methods
     ///
 
-    protected final Optional<Value> solveWithAsValue(SymbolDeclarator symbolDeclarator, String name, TypeSolver typeSolver) {
+    protected final Optional<Value> solveWithAsValue(SymbolDeclarator symbolDeclarator, String name) {
         for (ResolvedValueDeclaration decl : symbolDeclarator.getSymbolDeclarations()) {
             if (decl.getName().equals(name)) {
 

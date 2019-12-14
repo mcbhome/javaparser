@@ -1,5 +1,28 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.generator.metamodel;
 
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.comments.BlockComment;
@@ -14,7 +37,6 @@ import com.github.javaparser.printer.PrettyPrinter;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
 import com.github.javaparser.utils.SourceRoot;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,12 +69,13 @@ public class MetaModelGenerator {
         add(StringLiteralExpr.class);
 
         add(ModuleDeclaration.class);
-        add(ModuleStmt.class);
+        add(ModuleDirective.class);
 
         //
         add(ArrayCreationLevel.class);
         add(CompilationUnit.class);
         add(PackageDeclaration.class);
+        add(Modifier.class);
 
         add(AnnotationDeclaration.class);
         add(AnnotationMemberDeclaration.class);
@@ -101,10 +124,12 @@ public class MetaModelGenerator {
         add(SimpleName.class);
         add(SingleMemberAnnotationExpr.class);
         add(SuperExpr.class);
+        add(TextBlockLiteralExpr.class);
         add(ThisExpr.class);
         add(TypeExpr.class);
         add(UnaryExpr.class);
         add(VariableDeclarationExpr.class);
+        add(SwitchExpr.class);
 
         add(ImportDeclaration.class);
 
@@ -117,18 +142,19 @@ public class MetaModelGenerator {
         add(EmptyStmt.class);
         add(ExplicitConstructorInvocationStmt.class);
         add(ExpressionStmt.class);
-        add(ForeachStmt.class);
+        add(ForEachStmt.class);
         add(ForStmt.class);
         add(IfStmt.class);
         add(LabeledStmt.class);
         add(ReturnStmt.class);
-        add(SwitchEntryStmt.class);
+        add(SwitchEntry.class);
         add(SwitchStmt.class);
         add(SynchronizedStmt.class);
         add(ThrowStmt.class);
         add(TryStmt.class);
         add(LocalClassDeclarationStmt.class);
         add(WhileStmt.class);
+        add(YieldStmt.class);
         add(UnparsableStmt.class);
 
         add(ArrayType.class);
@@ -142,29 +168,33 @@ public class MetaModelGenerator {
         add(WildcardType.class);
         add(VarType.class);
 
-        add(ModuleRequiresStmt.class);
-        add(ModuleExportsStmt.class);
-        add(ModuleProvidesStmt.class);
-        add(ModuleUsesStmt.class);
-        add(ModuleOpensStmt.class);
+        add(ModuleRequiresDirective.class);
+        add(ModuleExportsDirective.class);
+        add(ModuleProvidesDirective.class);
+        add(ModuleUsesDirective.class);
+        add(ModuleOpensDirective.class);
     }};
 
     static String METAMODEL_PACKAGE = "com.github.javaparser.metamodel";
 
-    public static void main(String[] args) throws IOException, NoSuchMethodException {
+    public static void main(String[] args) throws NoSuchMethodException {
         if (args.length != 1) {
             throw new RuntimeException("Need 1 parameter: the JavaParser source checkout root directory.");
         }
         final Path root = Paths.get(args[0], "..", "javaparser-core", "src", "main", "java");
-        final SourceRoot sourceRoot = new SourceRoot(root);
+        final ParserConfiguration parserConfiguration = new ParserConfiguration()
+                .setLanguageLevel(ParserConfiguration.LanguageLevel.RAW)
+                .setStoreTokens(false);
+        final SourceRoot sourceRoot = new SourceRoot(root, parserConfiguration);
         sourceRoot.setPrinter(new PrettyPrinter(new PrettyPrinterConfiguration().setEndOfLineCharacter("\n"))::print);
+        StaticJavaParser.setConfiguration(parserConfiguration);
 
         new MetaModelGenerator().run(sourceRoot);
 
         sourceRoot.saveAll();
     }
 
-    private void run(SourceRoot sourceRoot) throws IOException, NoSuchMethodException {
+    private void run(SourceRoot sourceRoot) throws NoSuchMethodException {
         final CompilationUnit javaParserMetaModel = sourceRoot.parse(METAMODEL_PACKAGE, "JavaParserMetaModel.java");
 
         generateNodeMetaModels(javaParserMetaModel, sourceRoot);

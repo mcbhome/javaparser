@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,22 +21,24 @@
 
 package com.github.javaparser.ast.visitor;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
 import com.github.javaparser.ast.expr.SimpleName;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static com.github.javaparser.StaticJavaParser.parse;
+import static com.github.javaparser.StaticJavaParser.parseExpression;
 import static com.github.javaparser.utils.TestUtils.assertEqualsNoEol;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class TreeVisitorTest {
+class TreeVisitorTest {
     @Test
-    public void isValidBreadthFirstTraversal() {
-        Expression expression = JavaParser.parseExpression("(2+3)+(4+5)");
+    void isValidBreadthFirstTraversal() {
+        Expression expression = parseExpression("(2+3)+(4+5)");
 
         StringBuilder result = new StringBuilder();
 
@@ -52,8 +54,8 @@ public class TreeVisitorTest {
     }
 
     @Test
-    public void issue743ConcurrentModificationProblem() {
-        Expression expression = JavaParser.parseExpression("new int[]{1,2,3,4}");
+    void issue743ConcurrentModificationProblem() {
+        Expression expression = parseExpression("new int[]{1,2,3,4}");
 
         StringBuilder result = new StringBuilder();
         TreeVisitor visitor = new TreeVisitor() {
@@ -71,31 +73,31 @@ public class TreeVisitorTest {
     }
 
     @Test
-    public void isValidPreOrderTraversal() {
+    void isValidPreOrderTraversal() {
         StringBuilder result = new StringBuilder();
         new TreeVisitor() {
             @Override
             public void process(Node node) {
                 result.append("<").append(node).append("> ");
             }
-        }.visitPreOrder(JavaParser.parseExpression("(2+3)+(4+5)"));
+        }.visitPreOrder(parseExpression("(2+3)+(4+5)"));
         assertEquals("<(2 + 3) + (4 + 5)> <(2 + 3)> <2 + 3> <2> <3> <(4 + 5)> <4 + 5> <4> <5> ", result.toString());
     }
 
     @Test
-    public void isValidPostOrderTraversal() {
+    void isValidPostOrderTraversal() {
         StringBuilder result = new StringBuilder();
         new TreeVisitor() {
             @Override
             public void process(Node node) {
                 result.append("<").append(node).append("> ");
             }
-        }.visitPostOrder(JavaParser.parseExpression("(2+3)+(4+5)"));
+        }.visitPostOrder(parseExpression("(2+3)+(4+5)"));
         assertEquals("<2> <3> <2 + 3> <(2 + 3)> <4> <5> <4 + 5> <(4 + 5)> <(2 + 3) + (4 + 5)> ", result.toString());
     }
 
     @Test
-    public void preOrderConcurrentModificationIsOk() {
+    void preOrderConcurrentModificationIsOk() {
         new TreeVisitor() {
             @Override
             public void process(Node node) {
@@ -104,11 +106,11 @@ public class TreeVisitorTest {
                             parent -> ((ArrayInitializerExpr) parent).getValues().add(new IntegerLiteralExpr("1")));
                 }
             }
-        }.visitPreOrder(JavaParser.parseExpression("new int[]{1,2,3,4}"));
+        }.visitPreOrder(parseExpression("new int[]{1,2,3,4}"));
     }
 
     @Test
-    public void postOrderConcurrentModificationIsOk() {
+    void postOrderConcurrentModificationIsOk() {
         new TreeVisitor() {
             @Override
             public void process(Node node) {
@@ -117,12 +119,12 @@ public class TreeVisitorTest {
                             parent -> ((ArrayInitializerExpr) parent).getValues().add(new IntegerLiteralExpr("1")));
                 }
             }
-        }.visitPostOrder(JavaParser.parseExpression("new int[]{1,2,3,4}"));
+        }.visitPostOrder(parseExpression("new int[]{1,2,3,4}"));
     }
 
     @Test
-    public void parents() {
-        CompilationUnit cu = JavaParser.parse("class X{int x=1;}");
+    void parents() {
+        CompilationUnit cu = parse("class X{int x=1;}");
         SimpleName x = cu.getClassByName("X").get().getMember(0).asFieldDeclaration().getVariable(0).getName();
 
         Node.ParentsVisitor visitor = new Node.ParentsVisitor(x);
@@ -136,12 +138,12 @@ public class TreeVisitorTest {
                 "\n" +
                 "    int x = 1;\n" +
                 "}\n", visitor.next().toString());
-        assertEquals(false, visitor.hasNext());
+        assertFalse(visitor.hasNext());
     }
 
     @Test
-    public void isValidDirectChildrenTraversal() {
-        Expression expression = JavaParser.parseExpression("(2+3)+(4+5)");
+    void isValidDirectChildrenTraversal() {
+        Expression expression = parseExpression("(2+3)+(4+5)");
 
         StringBuilder result = new StringBuilder();
 

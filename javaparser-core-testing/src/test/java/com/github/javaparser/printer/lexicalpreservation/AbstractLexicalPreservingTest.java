@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,16 +21,17 @@
 
 package com.github.javaparser.printer.lexicalpreservation;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.Expression;
-import org.junit.Before;
 
 import java.io.IOException;
 
+import static com.github.javaparser.StaticJavaParser.parse;
+import static com.github.javaparser.StaticJavaParser.parseExpression;
+import static com.github.javaparser.StaticJavaParser.parseVariableDeclarationExpr;
 import static com.github.javaparser.utils.TestUtils.readResource;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public abstract class AbstractLexicalPreservingTest {
 
@@ -38,11 +39,15 @@ public abstract class AbstractLexicalPreservingTest {
     protected Expression expression;
 
     protected void considerCode(String code) {
-        cu = LexicalPreservingPrinter.setup(JavaParser.parse(code));
+        cu = LexicalPreservingPrinter.setup(parse(code));
     }
 
     protected void considerExpression(String code) {
-        expression = LexicalPreservingPrinter.setup(JavaParser.parseExpression(code));
+        expression = LexicalPreservingPrinter.setup(parseExpression(code));
+    }
+    
+    protected void considerVariableDeclaration(String code) {
+        expression = LexicalPreservingPrinter.setup(parseVariableDeclarationExpr(code));
     }
 
     protected String considerExample(String resourceName) throws IOException {

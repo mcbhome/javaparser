@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -63,19 +63,6 @@ public abstract class TreeVisitor {
     public void visitPostOrder(Node node) {
         new ArrayList<>(node.getChildNodes()).forEach(this::visitPostOrder);
         process(node);
-    }
-
-    /**
-     * Performs a pre-order node traversal starting with a given node. When each node is visited, {@link #process(Node)}
-     * is called for further processing.
-     *
-     * @param node The node at which the traversal begins.
-     * @see <a href="https://en.wikipedia.org/wiki/Pre-order">Pre-order traversal</a>
-     * @deprecated As of release 3.1.0, replaced by {@link #visitPreOrder(Node)}
-     */
-    @Deprecated
-    public void visitDepthFirst(Node node) {
-        visitPreOrder(node);
     }
 
     /**

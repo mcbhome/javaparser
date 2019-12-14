@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.github.javaparser.utils.Utils.*;
-import static com.github.javaparser.utils.Utils.nextWord;
 
 /**
  * The class responsible for parsing the content of JavadocComments and producing JavadocDocuments.
@@ -73,7 +72,7 @@ class JavadocParser {
             //then needs to be added again so that the block parsers handles everything correctly.
             blockLines = BLOCK_PATTERN
                 .splitAsStream(tagBlock)
-                .filter(STRING_NOT_EMPTY)
+                .filter(s1 -> !s1.isEmpty())
                 .map(s -> BLOCK_TAG_PREFIX + s)
                 .collect(Collectors.toList());
         }
@@ -102,6 +101,10 @@ class JavadocParser {
 
     private static List<String> cleanLines(String content) {
         String[] lines = content.split(EOL);
+        if (lines.length == 0) {
+            return Collections.emptyList();
+        }
+
         List<String> cleanedLines = Arrays.stream(lines).map(l -> {
             int asteriskIndex = startsWithAsterisk(l);
             if (asteriskIndex == -1) {

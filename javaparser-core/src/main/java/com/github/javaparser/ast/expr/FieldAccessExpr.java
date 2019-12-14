@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -30,33 +30,27 @@ import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.GenericVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitor;
-
 import java.util.Optional;
-
 import static com.github.javaparser.utils.Utils.assertNotNull;
-
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.FieldAccessExprMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-
-import javax.annotation.Generated;
-
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.metamodel.OptionalProperty;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
-
 import java.util.function.Consumer;
+import com.github.javaparser.ast.Generated;
 
 /**
- * Access of a field of an object.
+ * Access of a field of an object or a class.
  * <br/>In <code>person.name</code> "name" is the name and "person" is the scope.
  *
  * @author Julio Vilmar Gesser
  */
-public final class FieldAccessExpr extends Expression implements NodeWithSimpleName<FieldAccessExpr>, NodeWithTypeArguments<FieldAccessExpr>, NodeWithScope<FieldAccessExpr>, Resolvable<ResolvedValueDeclaration> {
+public class FieldAccessExpr extends Expression implements NodeWithSimpleName<FieldAccessExpr>, NodeWithTypeArguments<FieldAccessExpr>, NodeWithScope<FieldAccessExpr>, Resolvable<ResolvedValueDeclaration> {
 
     private Expression scope;
 
@@ -66,11 +60,11 @@ public final class FieldAccessExpr extends Expression implements NodeWithSimpleN
     private SimpleName name;
 
     public FieldAccessExpr() {
-        this(null, new ThisExpr(), new NodeList<>(), new SimpleName());
+        this(null, new ThisExpr(), null, new SimpleName());
     }
 
     public FieldAccessExpr(final Expression scope, final String name) {
-        this(null, scope, new NodeList<>(), new SimpleName(name));
+        this(null, scope, null, new SimpleName(name));
     }
 
     @AllFieldsConstructor
@@ -121,34 +115,9 @@ public final class FieldAccessExpr extends Expression implements NodeWithSimpleN
         return this;
     }
 
-    /**
-     * Use {@link #getName} instead.
-     */
-    @Deprecated
-    public SimpleName getField() {
-        return name;
-    }
-
     @Generated("com.github.javaparser.generator.core.node.PropertyGenerator")
     public Expression getScope() {
         return scope;
-    }
-
-    /**
-     * Use {@link #setName} with new SimpleName(field) instead.
-     */
-    @Deprecated
-    public FieldAccessExpr setField(final String field) {
-        setName(new SimpleName(field));
-        return this;
-    }
-
-    /**
-     * Use {@link #setName} instead.
-     */
-    @Deprecated
-    public FieldAccessExpr setFieldExpr(SimpleName inner) {
-        return setName(inner);
     }
 
     /**
@@ -286,5 +255,19 @@ public final class FieldAccessExpr extends Expression implements NodeWithSimpleN
     @Generated("com.github.javaparser.generator.core.node.TypeCastingGenerator")
     public Optional<FieldAccessExpr> toFieldAccessExpr() {
         return Optional.of(this);
+    }
+
+    /**
+     * Indicate if this FieldAccessExpr is an element directly contained in a larger FieldAccessExpr.
+     */
+    public boolean isInternal() {
+        return this.getParentNode().isPresent() && this.getParentNode().get() instanceof FieldAccessExpr;
+    }
+
+    /**
+     * Indicate if this FieldAccessExpr is top level, i.e., it is not directly contained in a larger FieldAccessExpr.
+     */
+    public boolean isTopLevel() {
+        return !isInternal();
     }
 }

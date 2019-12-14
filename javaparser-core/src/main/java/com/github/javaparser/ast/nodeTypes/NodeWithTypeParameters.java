@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,10 +21,11 @@
 
 package com.github.javaparser.ast.nodeTypes;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.type.TypeParameter;
+
+import static com.github.javaparser.StaticJavaParser.parseTypeParameter;
 
 /**
  * A node that can have type parameters.
@@ -57,7 +58,7 @@ public interface NodeWithTypeParameters<N extends Node> {
      * Adds a type parameter like "X extends Serializable"
      */
     default N addTypeParameter(String typeParameter) {
-        return addTypeParameter(JavaParser.parseTypeParameter(typeParameter));
+        return addTypeParameter(parseTypeParameter(typeParameter));
     }
 
     N setTypeParameters(NodeList<TypeParameter> typeParameters);

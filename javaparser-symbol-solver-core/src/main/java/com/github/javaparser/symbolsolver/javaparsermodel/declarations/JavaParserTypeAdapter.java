@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.symbolsolver.javaparsermodel.declarations;
 
 import com.github.javaparser.ast.Node;
@@ -25,8 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.javaparser.symbolsolver.javaparser.Navigator.getParentNode;
-
 /**
  * @author Federico Tomassetti
  */
@@ -41,15 +60,15 @@ public class JavaParserTypeAdapter<T extends Node & NodeWithSimpleName<T> & Node
     }
 
     public String getPackageName() {
-        return Helper.getPackageName(wrappedNode);
+        return AstResolutionUtils.getPackageName(wrappedNode);
     }
 
     public String getClassName() {
-        return Helper.getClassName("", wrappedNode);
+        return AstResolutionUtils.getClassName("", wrappedNode);
     }
 
     public String getQualifiedName() {
-        String containerName = Helper.containerName(getParentNode(wrappedNode));
+        String containerName = AstResolutionUtils.containerName(wrappedNode.getParentNode().orElse(null));
         if (containerName.isEmpty()) {
             return wrappedNode.getName().getId();
         } else {
@@ -80,7 +99,16 @@ public class JavaParserTypeAdapter<T extends Node & NodeWithSimpleName<T> & Node
         }
     }
 
-    public SymbolReference<ResolvedTypeDeclaration> solveType(String name, TypeSolver typeSolver) {
+    /**
+     * This method is deprecated because it receives the TypesSolver as a parameter.
+     * Eventually we would like to remove all usages of TypeSolver as a parameter.
+     *
+     * Also, resolution should move out of declarations, so that they are pure declarations and the resolution should
+     * work for JavaParser, Reflection and Javassist classes in the same way and not be specific to the three
+     * implementations.
+     */
+    @Deprecated
+    public SymbolReference<ResolvedTypeDeclaration> solveType(String name) {
         if(wrappedNode instanceof NodeWithTypeParameters<?>) {
             NodeList<TypeParameter> typeParameters = ((NodeWithTypeParameters<?>) wrappedNode).getTypeParameters();
             for (com.github.javaparser.ast.type.TypeParameter typeParameter : typeParameters) {
@@ -90,14 +118,18 @@ public class JavaParserTypeAdapter<T extends Node & NodeWithSimpleName<T> & Node
             }
         }
 
-        // Internal classes
+        // Member classes & interfaces
         for (BodyDeclaration<?> member : this.wrappedNode.getMembers()) {
             if (member instanceof com.github.javaparser.ast.body.TypeDeclaration) {
                 com.github.javaparser.ast.body.TypeDeclaration<?> internalType = (com.github.javaparser.ast.body.TypeDeclaration<?>) member;
                 String prefix = internalType.getName() + ".";
                 if (internalType.getName().getId().equals(name)) {
                     if (internalType instanceof ClassOrInterfaceDeclaration) {
-                        return SymbolReference.solved(new JavaParserClassDeclaration((com.github.javaparser.ast.body.ClassOrInterfaceDeclaration) internalType, typeSolver));
+                        if (((ClassOrInterfaceDeclaration) internalType).isInterface()) {
+                            return SymbolReference.solved(new JavaParserInterfaceDeclaration((com.github.javaparser.ast.body.ClassOrInterfaceDeclaration) internalType, typeSolver));
+                        } else {
+                            return SymbolReference.solved(new JavaParserClassDeclaration((com.github.javaparser.ast.body.ClassOrInterfaceDeclaration) internalType, typeSolver));
+                        }
                     } else if (internalType instanceof EnumDeclaration) {
                         return SymbolReference.solved(new JavaParserEnumDeclaration((com.github.javaparser.ast.body.EnumDeclaration) internalType, typeSolver));
                     } else {
@@ -105,7 +137,11 @@ public class JavaParserTypeAdapter<T extends Node & NodeWithSimpleName<T> & Node
                     }
                 } else if (name.startsWith(prefix) && name.length() > prefix.length()) {
                     if (internalType instanceof ClassOrInterfaceDeclaration) {
-                        return new JavaParserClassDeclaration((com.github.javaparser.ast.body.ClassOrInterfaceDeclaration) internalType, typeSolver).solveType(name.substring(prefix.length()), typeSolver);
+                        if (((ClassOrInterfaceDeclaration) internalType).isInterface()) {
+                            return new JavaParserInterfaceDeclaration((com.github.javaparser.ast.body.ClassOrInterfaceDeclaration) internalType, typeSolver).solveType(name.substring(prefix.length()));
+                        } else {
+                            return new JavaParserClassDeclaration((com.github.javaparser.ast.body.ClassOrInterfaceDeclaration) internalType, typeSolver).solveType(name.substring(prefix.length()));
+                        }
                     } else if (internalType instanceof EnumDeclaration) {
                         return new SymbolSolver(typeSolver).solveTypeInType(new JavaParserEnumDeclaration((com.github.javaparser.ast.body.EnumDeclaration) internalType, typeSolver), name.substring(prefix.length()));
                     } else {

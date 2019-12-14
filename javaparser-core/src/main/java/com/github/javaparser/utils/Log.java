@@ -1,13 +1,37 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.utils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.Supplier;
 
 import static com.github.javaparser.utils.CodeGenerationUtils.f;
 
 /**
  * To avoid dependencies on logging frameworks, we have invented yet another logging framework :-)
+ * <p>
+ * See <a href="http://javaparser.org/javaparsers-logging-framework-in-one-file/">a blog about this</a>
  */
 public class Log {
     /**
@@ -15,17 +39,19 @@ public class Log {
      */
     public static class StandardOutStandardErrorAdapter implements Adapter {
         @Override
-        public void info(String message) {
-            System.out.println(message);
+        public void info(Supplier<String> messageSupplier) {
+            System.out.println(messageSupplier.get());
         }
 
         @Override
-        public void trace(String message) {
-            System.out.println(message);
+        public void trace(Supplier<String> messageSupplier) {
+            System.out.println(messageSupplier.get());
         }
 
         @Override
-        public void error(Throwable throwable, String message) {
+        public void error(Supplier<Throwable> throwableSupplier, Supplier<String> messageSupplier) {
+            Throwable throwable = throwableSupplier.get();
+            String message = messageSupplier.get();
             if (message == null) {
                 System.err.println(throwable.getMessage());
                 printStackTrace(throwable);
@@ -40,7 +66,7 @@ public class Log {
         private void printStackTrace(Throwable throwable) {
             try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
                 throwable.printStackTrace(pw);
-                trace(sw.toString());
+                trace(sw::toString);
             } catch (IOException e) {
                 throw new AssertionError("Error in logging library");
             }
@@ -52,28 +78,28 @@ public class Log {
      */
     public static class SilentAdapter implements Adapter {
         @Override
-        public void info(String message) {
+        public void info(Supplier<String> messageSupplier) {
         }
 
         @Override
-        public void trace(String message) {
+        public void trace(Supplier<String> messageSupplier) {
         }
 
         @Override
-        public void error(Throwable throwable, String f) {
+        public void error(Supplier<Throwable> throwableSupplier, Supplier<String> messageSupplier) {
         }
     }
 
     public interface Adapter {
 
-        void info(String message);
+        void info(Supplier<String> message);
 
-        void trace(String message);
+        void trace(Supplier<String> message);
 
         /**
-         * Both can be null.
+         * Both can supply a null.
          */
-        void error(Throwable throwable, String f);
+        void error(Supplier<Throwable> throwableSupplier, Supplier<String> messageSupplier);
     }
 
     private static Adapter CURRENT_ADAPTER = new SilentAdapter();
@@ -88,35 +114,50 @@ public class Log {
     /**
      * For logging information that may help solving a problem.
      */
-    public static void trace(String format, Object... args) {
-        CURRENT_ADAPTER.trace(f(format, args));
+    @SafeVarargs
+    public static void trace(String format, Supplier<Object>... args) {
+        CURRENT_ADAPTER.trace(makeFormattingSupplier(format, args));
     }
+
+    private static Supplier<String> makeFormattingSupplier(String format, Supplier<Object>[] args) {
+        return () -> {
+            Object[] objects = new Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                objects[i] = args[i].get();
+            }
+            return f(format, objects);
+        };
+    }
+
 
     /**
      * For logging things that are nice to see scrolling by.
      */
-    public static void info(String format, Object... args) {
-        CURRENT_ADAPTER.info(f(format, args));
+    @SafeVarargs
+    public static void info(String format, Supplier<Object>... args) {
+        CURRENT_ADAPTER.info(makeFormattingSupplier(format, args));
     }
 
     /**
      * For drawing attention to an error.
      */
     public static void error(Throwable throwable) {
-        CURRENT_ADAPTER.error(throwable, null);
+        CURRENT_ADAPTER.error(() -> throwable, null);
     }
 
     /**
      * For drawing attention to an error that you don't have an exception for.
      */
-    public static void error(Throwable throwable, String format, Object... args) {
-        CURRENT_ADAPTER.error(throwable, f(format, args));
+    @SafeVarargs
+    public static void error(Throwable throwable, String format, Supplier<Object>... args) {
+        CURRENT_ADAPTER.error(() -> throwable, makeFormattingSupplier(format, args));
     }
 
     /**
      * For drawing attention to an error that you don't have an exception for.
      */
-    public static void error(String format, Object... args) {
-        CURRENT_ADAPTER.error(null, f(format, args));
+    @SafeVarargs
+    public static void error(String format, Supplier<Object>... args) {
+        CURRENT_ADAPTER.error(() -> null, makeFormattingSupplier(format, args));
     }
 }

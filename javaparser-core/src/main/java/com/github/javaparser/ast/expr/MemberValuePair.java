@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -30,8 +30,8 @@ import static com.github.javaparser.utils.Utils.assertNotNull;
 import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.MemberValuePairMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-import javax.annotation.Generated;
 import com.github.javaparser.TokenRange;
+import com.github.javaparser.ast.Generated;
 
 /**
  * A value for a member of an annotation.
@@ -39,7 +39,7 @@ import com.github.javaparser.TokenRange;
  *
  * @author Julio Vilmar Gesser
  */
-public final class MemberValuePair extends Node implements NodeWithSimpleName<MemberValuePair> {
+public class MemberValuePair extends Node implements NodeWithSimpleName<MemberValuePair> {
 
     private SimpleName name;
 

@@ -1,22 +1,28 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.resolution;
 
-import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
@@ -35,17 +41,24 @@ import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import org.junit.Test;
+import com.github.javaparser.symbolsolver.utils.LeanParserConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FieldsResolutionTest extends AbstractResolutionTest {
+class FieldsResolutionTest extends AbstractResolutionTest {
+
+    @AfterEach
+    void resetConfiguration() {
+        StaticJavaParser.setConfiguration(new ParserConfiguration());
+    }
 
     @Test
-    public void accessClassFieldThroughThis() {
+    void accessClassFieldThroughThis() {
         CompilationUnit cu = parseSample("AccessClassMemberThroughThis");
         ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "AccessClassMemberThroughThis");
         MethodDeclaration method = Navigator.demandMethod(clazz, "getLabel2");
@@ -57,7 +70,7 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void accessClassFieldThroughThisWithCompetingSymbolInParentContext() {
+    void accessClassFieldThroughThisWithCompetingSymbolInParentContext() {
         CompilationUnit cu = parseSample("AccessClassMemberThroughThis");
         ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "AccessClassMemberThroughThis");
         MethodDeclaration method = Navigator.demandMethod(clazz, "setLabel");
@@ -66,7 +79,7 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
         FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) assignExpr.getTarget();
 
         Path src = adaptPath("src/test/resources");
-        CombinedTypeSolver typeSolver = new CombinedTypeSolver(new JavaParserTypeSolver(src), new ReflectionTypeSolver());
+        CombinedTypeSolver typeSolver = new CombinedTypeSolver(new JavaParserTypeSolver(src, new LeanParserConfiguration()), new ReflectionTypeSolver());
         SymbolSolver symbolSolver = new SymbolSolver(typeSolver);
         SymbolReference<? extends ResolvedValueDeclaration> ref = symbolSolver.solveSymbol(fieldAccessExpr.getName().getId(), fieldAccessExpr);
 
@@ -75,7 +88,7 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void accessEnumFieldThroughThis() {
+    void accessEnumFieldThroughThis() {
         CompilationUnit cu = parseSample("AccessEnumMemberThroughThis");
         EnumDeclaration enumDecl = Navigator.demandEnum(cu, "AccessEnumMemberThroughThis");
         MethodDeclaration method = Navigator.demandMethod(enumDecl, "getLabel");
@@ -87,7 +100,7 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void accessEnumMethodThroughThis() {
+    void accessEnumMethodThroughThis() {
         CompilationUnit cu = parseSample("AccessEnumMemberThroughThis");
         EnumDeclaration enumDecl = Navigator.demandEnum(cu, "AccessEnumMemberThroughThis");
         MethodDeclaration method = Navigator.demandMethod(enumDecl, "getLabel2");
@@ -99,7 +112,7 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void accessClassFieldThroughSuper() {
+    void accessClassFieldThroughSuper() {
         CompilationUnit cu = parseSample("AccessThroughSuper");
         ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "AccessThroughSuper.SubClass");
         MethodDeclaration method = Navigator.demandMethod(clazz, "fieldTest");
@@ -111,9 +124,9 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void resolveClassFieldThroughThis() {
+    void resolveClassFieldThroughThis() {
         // configure symbol solver before parsing
-        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
+        StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
 
         // parse compilation unit and get field access expression
         CompilationUnit cu = parseSample("AccessClassMemberThroughThis");
@@ -133,9 +146,9 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void resolveClassFieldThroughSuper() {
+    void resolveClassFieldThroughSuper() {
         // configure symbol solver before parsing
-        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
+        StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
 
         // parse compilation unit and get field access expression
         CompilationUnit cu = parseSample("AccessThroughSuper");
@@ -156,9 +169,9 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void resolveClassFieldOfClassExtendingUnknownClass1() {
+    void resolveClassFieldOfClassExtendingUnknownClass1() {
         // configure symbol solver before parsing
-        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
+        StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
 
         // parse compilation unit and get field access expression
         CompilationUnit cu = parseSample("ClassExtendingUnknownClass");
@@ -178,9 +191,9 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
     }
 
     @Test
-    public void resolveClassFieldOfClassExtendingUnknownClass2() {
+    void resolveClassFieldOfClassExtendingUnknownClass2() {
         // configure symbol solver before parsing
-        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
+        StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
 
         // parse compilation unit and get field access expression
         CompilationUnit cu = parseSample("ClassExtendingUnknownClass");
@@ -197,5 +210,21 @@ public class FieldsResolutionTest extends AbstractResolutionTest {
 
         // check that the expected field declaration equals the resolved field declaration
         assertEquals(variableDeclarator, ((JavaParserFieldDeclaration) resolvedValueDeclaration).getVariableDeclarator());
+    }
+
+    @Test
+    void resolveInheritedFieldFromInterface() {
+        // configure symbol solver before parsing
+        StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver()));
+
+        // parse compilation unit and get field access expression
+        CompilationUnit cu = parseSample("ReflectionTypeSolverFieldFromInterfaceResolution");
+        ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "Test");
+        MethodDeclaration method = Navigator.demandMethod(clazz, "foo");
+        ReturnStmt returnStmt = (ReturnStmt) method.getBody().get().getStatements().get(0);
+        Expression expression = returnStmt.getExpression().get();
+
+        ResolvedType ref = JavaParserFacade.get(new ReflectionTypeSolver()).getType(expression);
+        assertEquals("int", ref.describe());
     }
 }

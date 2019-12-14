@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -35,7 +35,9 @@ public interface NodeWithDeclaration {
      *
      * @return String representation of declaration
      */
-    String getDeclarationAsString();
+    default String getDeclarationAsString() {
+        return getDeclarationAsString(true, true, true);
+    }
 
     /**
      * As {@link NodeWithDeclaration#getDeclarationAsString(boolean, boolean, boolean)} including
@@ -45,7 +47,9 @@ public interface NodeWithDeclaration {
      * @param includingThrows flag to include the throws clause (if present) in the string produced
      * @return String representation of declaration based on parameter flags
      */
-    String getDeclarationAsString(boolean includingModifiers, boolean includingThrows);
+    default String getDeclarationAsString(boolean includingModifiers, boolean includingThrows) {
+        return getDeclarationAsString(includingModifiers, includingThrows, true);
+    }
 
     /**
      * A simple representation of the element declaration.

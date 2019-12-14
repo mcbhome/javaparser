@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -108,4 +108,7 @@ public final class Providers {
         return resourceProvider(pathToResource, UTF8);
     }
 
+    public interface PreProcessor {
+        Provider process(Provider innerProvider);
+    }
 }

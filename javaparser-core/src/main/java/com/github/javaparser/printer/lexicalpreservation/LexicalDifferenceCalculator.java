@@ -1,16 +1,40 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.printer.lexicalpreservation;
 
 import com.github.javaparser.GeneratedJavaParserConstants;
+import com.github.javaparser.JavaToken.Kind;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.observer.ObservableProperty;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.printer.ConcreteSyntaxModel;
 import com.github.javaparser.printer.Printable;
 import com.github.javaparser.printer.SourcePrinter;
 import com.github.javaparser.printer.concretesyntaxmodel.*;
 import com.github.javaparser.printer.lexicalpreservation.changes.*;
+import com.github.javaparser.utils.Utils;
 
 import java.util.*;
 
@@ -28,9 +52,7 @@ class LexicalDifferenceCalculator {
         }
 
         public CalculatedSyntaxModel from(int index) {
-            List<CsmElement> newList = new LinkedList<>();
-            newList.addAll(elements.subList(index, elements.size()));
-            return new CalculatedSyntaxModel(newList);
+            return new CalculatedSyntaxModel(new ArrayList<>(elements.subList(index, elements.size())));
         }
 
         @Override
@@ -110,7 +132,7 @@ class LexicalDifferenceCalculator {
         return DifferenceElementCalculator.calculate(original, after);
     }
 
-    public void calculatePropertyChange(NodeText nodeText, Node observedNode, ObservableProperty property, Object oldValue, Object newValue) {
+    void calculatePropertyChange(NodeText nodeText, Node observedNode, ObservableProperty property, Object oldValue, Object newValue) {
         if (nodeText == null) {
             throw new NullPointerException();
         }
@@ -148,6 +170,19 @@ class LexicalDifferenceCalculator {
                 child = csmSingleReference.getProperty().getValueAsSingleReference(node);
             }
             if (child != null) {
+                // fix issue #2374
+                // Add node comment if needed (it's not very elegant but it works)
+                // We need to be sure that the node is an ExpressionStmt because we can meet
+                // this class definition
+                // a line comment <This is my class, with my comment> followed by
+                // class A {}
+                // In this case keyworld [class] is considered as a token and [A] is a child element
+                // So if we don't care that the node is an ExpressionStmt we could try to generate a wrong definition
+                // like this [class // This is my class, with my comment A {}]
+                if (node.getComment().isPresent() && node instanceof ExpressionStmt) {
+                    elements.add(new CsmChild(node.getComment().get()));
+                    elements.add(new CsmToken(Kind.EOF.getKind(), Utils.EOL));
+                }
                 elements.add(new CsmChild(child));
             }
         } else if (csm instanceof CsmNone) {
@@ -244,13 +279,15 @@ class LexicalDifferenceCalculator {
             List<CsmElement> mixElements = new LinkedList<>();
             csmMix.getElements().forEach(e -> calculatedSyntaxModelForNode(e, node, mixElements, change));
             elements.add(new CsmMix(mixElements));
+        } else if (csm instanceof CsmChild) {
+            elements.add(csm);
         } else {
             throw new UnsupportedOperationException(csm.getClass().getSimpleName()+ " " + csm);
         }
     }
 
-    private int toToken(Modifier modifier) {
-        switch (modifier) {
+    public static int toToken(Modifier modifier) {
+        switch (modifier.getKeyword()) {
             case PUBLIC:
                 return GeneratedJavaParserConstants.PUBLIC;
             case PRIVATE:
@@ -263,8 +300,20 @@ class LexicalDifferenceCalculator {
                 return GeneratedJavaParserConstants.FINAL;
             case ABSTRACT:
                 return GeneratedJavaParserConstants.ABSTRACT;
+            case TRANSIENT:
+                return GeneratedJavaParserConstants.TRANSIENT;
+            case SYNCHRONIZED:
+                return GeneratedJavaParserConstants.SYNCHRONIZED;
+            case VOLATILE:
+                return GeneratedJavaParserConstants.VOLATILE;
+            case NATIVE:
+                return GeneratedJavaParserConstants.NATIVE;
+            case STRICTFP:
+                return GeneratedJavaParserConstants.STRICTFP;
+            case TRANSITIVE:
+                return GeneratedJavaParserConstants.TRANSITIVE;
             default:
-                throw new UnsupportedOperationException(modifier.name());
+                throw new UnsupportedOperationException(modifier.getKeyword().name());
         }
     }
 

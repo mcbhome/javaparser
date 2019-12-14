@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -24,7 +24,7 @@ package com.github.javaparser.printer.lexicalpreservation.transformations.ast;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.printer.lexicalpreservation.AbstractLexicalPreservingTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -33,26 +33,26 @@ import static com.github.javaparser.utils.Utils.EOL;
 /**
  * Transforming CompilationUnit and verifying the LexicalPreservation works as expected.
  */
-public class CompilationUnitTransformationsTest extends AbstractLexicalPreservingTest {
+class CompilationUnitTransformationsTest extends AbstractLexicalPreservingTest {
 
     // packageDeclaration
 
     @Test
-    public void addingPackageDeclaration() throws IOException {
+    void addingPackageDeclaration() {
         considerCode("class A {}");
         cu.setPackageDeclaration(new PackageDeclaration(new Name(new Name("foo"), "bar")));
         assertTransformedToString("package foo.bar;"+ EOL + EOL + "class A {}", cu);
     }
 
     @Test
-    public void removingPackageDeclaration() throws IOException {
+    void removingPackageDeclaration() {
         considerCode("package foo.bar; class A {}");
         cu.removePackageDeclaration();
         assertTransformedToString("class A {}", cu);
     }
 
     @Test
-    public void replacingPackageDeclaration() throws IOException {
+    void replacingPackageDeclaration() {
         considerCode("package foo.bar; class A {}");
         cu.setPackageDeclaration(new PackageDeclaration(new Name(new Name("foo2"), "baz")));
         assertTransformedToString("package foo2.baz;" +

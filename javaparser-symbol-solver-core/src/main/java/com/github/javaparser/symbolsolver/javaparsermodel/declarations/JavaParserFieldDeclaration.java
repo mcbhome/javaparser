@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparsermodel.declarations;
@@ -19,18 +24,16 @@ package com.github.javaparser.symbolsolver.javaparsermodel.declarations;
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
-import com.github.javaparser.symbolsolver.javaparser.Navigator;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
-import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 
 import java.util.Optional;
 
-import static com.github.javaparser.symbolsolver.javaparser.Navigator.getParentNode;
 import static com.github.javaparser.symbolsolver.javaparser.Navigator.requireParentNode;
 
 /**
@@ -40,7 +43,6 @@ public class JavaParserFieldDeclaration implements ResolvedFieldDeclaration {
 
     private VariableDeclarator variableDeclarator;
     private com.github.javaparser.ast.body.FieldDeclaration wrappedNode;
-    private EnumConstantDeclaration enumConstantDeclaration;
     private TypeSolver typeSolver;
 
     public JavaParserFieldDeclaration(VariableDeclarator variableDeclarator, TypeSolver typeSolver) {
@@ -55,35 +57,19 @@ public class JavaParserFieldDeclaration implements ResolvedFieldDeclaration {
         this.wrappedNode = (com.github.javaparser.ast.body.FieldDeclaration) requireParentNode(variableDeclarator);
     }
 
-    public JavaParserFieldDeclaration(EnumConstantDeclaration enumConstantDeclaration, TypeSolver typeSolver) {
-        if (typeSolver == null) {
-            throw new IllegalArgumentException("typeSolver should not be null");
-        }
-        this.enumConstantDeclaration = enumConstantDeclaration;
-        this.typeSolver = typeSolver;
-    }
-
     @Override
     public ResolvedType getType() {
-        if (enumConstantDeclaration != null) {
-            com.github.javaparser.ast.body.EnumDeclaration enumDeclaration = (com.github.javaparser.ast.body.EnumDeclaration) requireParentNode(enumConstantDeclaration);
-            return new ReferenceTypeImpl(new JavaParserEnumDeclaration(enumDeclaration, typeSolver), typeSolver);
-        }
         return JavaParserFacade.get(typeSolver).convert(variableDeclarator.getType(), wrappedNode);
     }
 
     @Override
     public String getName() {
-        if (enumConstantDeclaration != null) {
-            return enumConstantDeclaration.getName().getId();
-        } else {
-            return variableDeclarator.getName().getId();
-        }
+        return variableDeclarator.getName().getId();
     }
 
     @Override
     public boolean isStatic() {
-        return wrappedNode.getModifiers().contains(Modifier.STATIC);
+        return wrappedNode.hasModifier(Modifier.Keyword.STATIC);
     }
 
     @Override
@@ -106,17 +92,17 @@ public class JavaParserFieldDeclaration implements ResolvedFieldDeclaration {
 
     @Override
     public String toString() {
-        return "JPField{" + getName() + "}";
+        return "JavaParserFieldDeclaration{" + getName() + "}";
     }
 
     @Override
     public AccessSpecifier accessSpecifier() {
-        return Helper.toAccessLevel(wrappedNode.getModifiers());
+        return wrappedNode.getAccessSpecifier();
     }
 
     @Override
     public ResolvedTypeDeclaration declaringType() {
-        Optional<com.github.javaparser.ast.body.TypeDeclaration> typeDeclaration = wrappedNode.findParent(com.github.javaparser.ast.body.TypeDeclaration.class);
+        Optional<TypeDeclaration> typeDeclaration = wrappedNode.findAncestor(TypeDeclaration.class);
         if (typeDeclaration.isPresent()) {
             return JavaParserFacade.get(typeSolver).getTypeDeclaration(typeDeclaration.get());
         }

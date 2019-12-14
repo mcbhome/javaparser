@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,34 +21,33 @@
 
 package com.github.javaparser.ast.visitor;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import org.junit.jupiter.api.Test;
 
-public class NoCommentEqualsVisitorTest {
+import static com.github.javaparser.StaticJavaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class NoCommentEqualsVisitorTest {
 
     @Test
-    public void testEquals() {
-        CompilationUnit p1 = JavaParser.parse("class X { }");
-        CompilationUnit p2 = JavaParser.parse("class X { }");
+    void testEquals() {
+        CompilationUnit p1 = parse("class X { }");
+        CompilationUnit p2 = parse("class X { }");
         assertTrue(NoCommentEqualsVisitor.equals(p1, p2));
     }
 
     @Test
-    public void testEqualsWithDifferentComments() {
-        CompilationUnit p1 = JavaParser.parse("/* a */ class X { /** b */} //c");
-        CompilationUnit p2 = JavaParser.parse("/* b */ class X { }  //c");
+    void testEqualsWithDifferentComments() {
+        CompilationUnit p1 = parse("/* a */ class X { /** b */} //c");
+        CompilationUnit p2 = parse("/* b */ class X { }  //c");
         assertTrue(NoCommentEqualsVisitor.equals(p1, p2));
     }
 
     @Test
-    public void testNotEquals() {
-        CompilationUnit p1 = JavaParser.parse("class X { }");
-        CompilationUnit p2 = JavaParser.parse("class Y { }");
+    void testNotEquals() {
+        CompilationUnit p1 = parse("class X { }");
+        CompilationUnit p2 = parse("class Y { }");
         assertFalse(NoCommentEqualsVisitor.equals(p1, p2));
     }
 }

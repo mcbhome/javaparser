@@ -1,15 +1,37 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.ast.validator.chunks;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.ArrayCreationExpr;
+import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.LambdaExpr;
 import com.github.javaparser.ast.expr.NullLiteralExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
-import com.github.javaparser.ast.stmt.ForeachStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.type.VarType;
 import com.github.javaparser.ast.validator.ProblemReporter;
 import com.github.javaparser.ast.validator.TypedValidator;
@@ -26,12 +48,12 @@ public class VarValidator implements TypedValidator<VarType> {
     @Override
     public void accept(VarType node, ProblemReporter reporter) {
         // All allowed locations are within a VariableDeclaration inside a VariableDeclarationExpr inside something else.
-        Optional<VariableDeclarator> variableDeclarator = node.findParent(VariableDeclarator.class);
+        Optional<VariableDeclarator> variableDeclarator = node.findAncestor(VariableDeclarator.class);
         if (!variableDeclarator.isPresent()) {
             // Java 11's var in lambda's
             if (varAllowedInLambdaParameters) {
                 boolean valid = node
-                        .findParent(Parameter.class)
+                        .findAncestor(Parameter.class)
                         .flatMap(Node::getParentNode)
                         .map((Node p) -> p instanceof LambdaExpr).orElse(false);
                 if (valid) {
@@ -42,6 +64,9 @@ public class VarValidator implements TypedValidator<VarType> {
             return;
         }
         variableDeclarator.ifPresent(vd -> {
+            if (vd.getType().isArrayType()) {
+                reporter.report(vd, "\"var\" cannot have extra array brackets.");
+            }
             Optional<Node> variableDeclarationExpr = vd.getParentNode();
             if (!variableDeclarationExpr.isPresent()) {
                 reportIllegalPosition(node, reporter);
@@ -62,7 +87,8 @@ public class VarValidator implements TypedValidator<VarType> {
                     return;
                 }
                 container.ifPresent(c -> {
-                    boolean positionIsFine = c instanceof ForStmt || c instanceof ForeachStmt || c instanceof ExpressionStmt;
+                    boolean positionIsFine = c instanceof ForStmt || c instanceof ForEachStmt ||
+                            c instanceof ExpressionStmt || c instanceof TryStmt;
                     if (!positionIsFine) {
                         reportIllegalPosition(node, reporter);
                     }
@@ -75,7 +101,7 @@ public class VarValidator implements TypedValidator<VarType> {
                             if (initializer instanceof NullLiteralExpr) {
                                 reporter.report(node, "\"var\" cannot infer type from just null.");
                             }
-                            if (initializer instanceof ArrayCreationExpr) {
+                            if (initializer instanceof ArrayInitializerExpr) {
                                 reporter.report(node, "\"var\" cannot infer array types.");
                             }
                         });

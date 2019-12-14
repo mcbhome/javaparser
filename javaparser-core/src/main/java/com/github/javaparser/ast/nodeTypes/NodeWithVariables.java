@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -98,6 +98,19 @@ public interface NodeWithVariables<N extends Node> {
             }
         }
         return type;
+    }
+
+    /**
+     * Sets the type of all variables.
+     * Erases any existing type.
+     * This is a shortcut for setting a type on all variable declarators separately.
+     */
+    @SuppressWarnings("unchecked")
+    default N setAllTypes(Type newType) {
+        for (VariableDeclarator variable : getVariables()) {
+            variable.setType(newType);
+        }
+        return (N) this;
     }
 
     /**

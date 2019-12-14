@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,48 +21,48 @@
 
 package com.github.javaparser.printer;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.ClassExpr;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static com.github.javaparser.StaticJavaParser.*;
 import static com.github.javaparser.utils.Utils.EOL;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ConcreteSyntaxModelTest {
+class ConcreteSyntaxModelTest {
 
     private String print(Node node) {
         return ConcreteSyntaxModel.genericPrettyPrint(node);
     }
 
     @Test
-    public void printSimpleClassExpr() {
-        ClassExpr expr = JavaParser.parseExpression("Foo.class");
+    void printSimpleClassExpr() {
+        ClassExpr expr = parseExpression("Foo.class");
         assertEquals("Foo.class", print(expr));
     }
 
     @Test
-    public void printArrayClassExpr() {
-        ClassExpr expr = JavaParser.parseExpression("Foo[].class");
+    void printArrayClassExpr() {
+        ClassExpr expr = parseExpression("Foo[].class");
         assertEquals("Foo[].class", print(expr));
     }
 
     @Test
-    public void printGenericClassExpr() {
-        ClassExpr expr = JavaParser.parseExpression("Foo<String>.class");
+    void printGenericClassExpr() {
+        ClassExpr expr = parseExpression("Foo<String>.class");
         assertEquals("Foo<String>.class", print(expr));
     }
 
     @Test
-    public void printSimplestClass() {
-        Node node = JavaParser.parse("class A {}");
+    void printSimplestClass() {
+        Node node = parse("class A {}");
         assertEquals("class A {" + EOL +
                 "}" + EOL, print(node));
     }
 
     @Test
-    public void printAClassWithField() {
-        Node node = JavaParser.parse("class A { int a; }");
+    void printAClassWithField() {
+        Node node = parse("class A { int a; }");
         assertEquals("class A {" + EOL
                 + EOL +
                 "    int a;" + EOL +
@@ -70,27 +70,27 @@ public class ConcreteSyntaxModelTest {
     }
 
     @Test
-    public void printParameters() {
-        Node node = JavaParser.parseBodyDeclaration("int x(int y, int z) {}");
+    void printParameters() {
+        Node node = parseBodyDeclaration("int x(int y, int z) {}");
         assertEquals("int x(int y, int z) {" + EOL + "}", print(node));
     }
 
     @Test
-    public void printReceiverParameter() {
-        Node node = JavaParser.parseBodyDeclaration("int x(X A.B.this, int y, int z) {}");
+    void printReceiverParameter() {
+        Node node = parseBodyDeclaration("int x(X A.B.this, int y, int z) {}");
         assertEquals("int x(X A.B.this, int y, int z) {" + EOL + "}", print(node));
     }
 
     @Test
-    public void printAnEmptyInterface() {
-        Node node = JavaParser.parse("interface A {}");
+    void printAnEmptyInterface() {
+        Node node = parse("interface A {}");
         assertEquals("interface A {" + EOL +
                 "}" + EOL, print(node));
     }
 
     @Test
-    public void printAnEmptyInterfaceWithModifier() {
-        Node node = JavaParser.parse("public interface A {}");
+    void printAnEmptyInterfaceWithModifier() {
+        Node node = parse("public interface A {}");
         assertEquals("public interface A {" + EOL +
                 "}" + EOL, print(node));
     }

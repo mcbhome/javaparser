@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -36,7 +36,6 @@ import static com.github.javaparser.utils.Utils.EOL;
 public class ParseResult<T> {
     private final T result;
     private final List<Problem> problems;
-    private final List<JavaToken> tokens;
     private final CommentsCollection commentsCollection;
 
     /**
@@ -44,13 +43,11 @@ public class ParseResult<T> {
      *
      * @param result the AST, or empty if it wasn't created.
      * @param problems a list of encountered parsing problems.
-     * @param tokens the complete list of tokens that were parsed, or empty if parsing failed completely.
      */
-    public ParseResult(T result, List<Problem> problems, List<JavaToken> tokens, CommentsCollection commentsCollection) {
+    public ParseResult(T result, List<Problem> problems, CommentsCollection commentsCollection) {
         this.commentsCollection = commentsCollection;
         this.result = result;
         this.problems = problems;
-        this.tokens = tokens;
     }
 
     /**
@@ -81,16 +78,6 @@ public class ParseResult<T> {
      */
     public Problem getProblem(int i) {
         return getProblems().get(i);
-    }
-
-    /**
-     * @return the complete list of tokens that were parsed, or empty if parsing failed completely.
-     * @deprecated lists of tokens are now kept in every node.
-     * Calling this method is comparable to calling getResult().get().getTokenRange().get()
-     */
-    @Deprecated
-    public Optional<List<JavaToken>> getTokens() {
-        return Optional.ofNullable(tokens);
     }
 
     /**

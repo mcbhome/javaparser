@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -98,6 +98,21 @@ class ChildTextElement extends TextElement {
     @Override
     public boolean isComment() {
         return child instanceof Comment;
+    }
+    
+    @Override
+    public boolean isSeparator() {
+        return false;
+    }
+    
+    @Override
+    public boolean isIdentifier() {
+        return false;
+    }
+    
+    @Override
+    public boolean isPrimitive() {
+        return false;
     }
 
     @Override

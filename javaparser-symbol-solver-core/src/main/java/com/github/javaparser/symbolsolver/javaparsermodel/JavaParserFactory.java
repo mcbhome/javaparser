@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparsermodel;
@@ -22,27 +27,17 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.TypeParameter;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
-import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
 import com.github.javaparser.symbolsolver.javaparsermodel.contexts.*;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserAnnotationDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserEnumDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserInterfaceDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserTypeParameter;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarators.FieldSymbolDeclarator;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarators.NoSymbolDeclarator;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarators.ParameterSymbolDeclarator;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarators.VariableSymbolDeclarator;
-import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.SymbolDeclarator;
 
-import static com.github.javaparser.symbolsolver.javaparser.Navigator.getParentNode;
 import static com.github.javaparser.symbolsolver.javaparser.Navigator.requireParentNode;
 
 /**
@@ -53,10 +48,12 @@ public class JavaParserFactory {
     public static Context getContext(Node node, TypeSolver typeSolver) {
         if (node == null) {
             throw new NullPointerException("Node should not be null");
+        } else if (node instanceof BlockStmt) {
+            return new BlockStmtContext((BlockStmt) node, typeSolver);
         } else if (node instanceof CompilationUnit) {
             return new CompilationUnitContext((CompilationUnit) node, typeSolver);
-        } else if (node instanceof ForeachStmt) {
-            return new ForechStatementContext((ForeachStmt) node, typeSolver);
+        } else if (node instanceof ForEachStmt) {
+            return new ForEachStatementContext((ForEachStmt) node, typeSolver);
         } else if (node instanceof ForStmt) {
             return new ForStatementContext((ForStmt) node, typeSolver);
         } else if (node instanceof LambdaExpr) {
@@ -73,14 +70,18 @@ public class JavaParserFactory {
             return new EnumDeclarationContext((EnumDeclaration) node, typeSolver);
         } else if (node instanceof FieldAccessExpr) {
             return new FieldAccessContext((FieldAccessExpr) node, typeSolver);
-        } else if (node instanceof SwitchEntryStmt) {
-            return new SwitchEntryContext((SwitchEntryStmt) node, typeSolver);
+        } else if (node instanceof SwitchEntry) {
+            return new SwitchEntryContext((SwitchEntry) node, typeSolver);
         } else if (node instanceof TryStmt) {
             return new TryWithResourceContext((TryStmt) node, typeSolver);
         } else if (node instanceof Statement) {
             return new StatementContext<>((Statement) node, typeSolver);
         } else if (node instanceof CatchClause) {
             return new CatchClauseContext((CatchClause) node, typeSolver);
+        } else if (node instanceof VariableDeclarator) {
+            return new VariableDeclaratorContext((VariableDeclarator) node, typeSolver);
+        } else if (node instanceof VariableDeclarationExpr) {
+            return new VariableDeclarationExprContext((VariableDeclarationExpr) node, typeSolver);
         } else if (node instanceof ObjectCreationExpr &&
             ((ObjectCreationExpr) node).getAnonymousClassBody().isPresent()) {
             return new AnonymousClassDeclarationContext((ObjectCreationExpr) node, typeSolver);
@@ -123,8 +124,8 @@ public class JavaParserFactory {
             }
         } else if (node instanceof IfStmt) {
             return new NoSymbolDeclarator<>((IfStmt) node, typeSolver);
-        } else if (node instanceof ForeachStmt) {
-            ForeachStmt foreachStmt = (ForeachStmt) node;
+        } else if (node instanceof ForEachStmt) {
+            ForEachStmt foreachStmt = (ForEachStmt) node;
             return new VariableSymbolDeclarator(foreachStmt.getVariable(), typeSolver);
         } else {
             return new NoSymbolDeclarator<>(node, typeSolver);

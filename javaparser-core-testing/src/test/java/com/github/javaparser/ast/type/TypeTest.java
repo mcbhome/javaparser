@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.ast.type;
 
 import com.github.javaparser.JavaParser;
@@ -6,31 +27,32 @@ import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.validator.Java5Validator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static com.github.javaparser.JavaParser.parseType;
-import static com.github.javaparser.JavaParser.parseVariableDeclarationExpr;
 import static com.github.javaparser.ParseStart.VARIABLE_DECLARATION_EXPR;
 import static com.github.javaparser.ParserConfiguration.LanguageLevel.*;
 import static com.github.javaparser.Providers.provider;
-import static org.junit.Assert.*;
+import static com.github.javaparser.StaticJavaParser.parseType;
+import static com.github.javaparser.StaticJavaParser.parseVariableDeclarationExpr;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class TypeTest {
+class TypeTest {
     @Test
-    public void asString() {
+    void asString() {
         assertEquals("int", typeAsString("int x"));
         assertEquals("List<Long>", typeAsString("List<Long> x"));
         assertEquals("String", typeAsString("@A String x"));
         assertEquals("List<? extends Object>", typeAsString("List<? extends Object> x"));
     }
 
-    @Test(expected = ParseProblemException.class)
-    public void primitiveTypeArgumentDefaultValidator() {
-        typeAsString("List<long> x;");
+    @Test
+    void primitiveTypeArgumentDefaultValidator() {
+        assertThrows(ParseProblemException.class, () -> typeAsString("List<long> x;"));
     }
 
     @Test
-    public void primitiveTypeArgumentLenientValidator() {
+    void primitiveTypeArgumentLenientValidator() {
         ParserConfiguration config = new ParserConfiguration()
                 .setLanguageLevel(RAW);
         config.getPostProcessors().add(new Java5Validator() {{
@@ -50,7 +72,7 @@ public class TypeTest {
     }
 
     @Test
-    public void arrayType() {
+    void arrayType() {
         Type type = parseType("int[]");
         assertTrue(type.isArrayType());
         ArrayType arrayType = type.asArrayType();
@@ -60,7 +82,7 @@ public class TypeTest {
     }
 
     @Test
-    public void issue1251() {
+    void issue1251() {
         final Type type = parseType("TypeUtilsTest<String>.Tester");
         assertEquals("TypeUtilsTest<String>.Tester", type.toString());
     }

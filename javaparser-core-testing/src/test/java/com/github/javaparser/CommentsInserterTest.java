@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -23,16 +23,17 @@ package com.github.javaparser;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.comments.CommentsCollection;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static com.github.javaparser.JavaParser.*;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static com.github.javaparser.StaticJavaParser.parseResource;
 import static com.github.javaparser.utils.TestUtils.assertEqualsNoEol;
 import static com.github.javaparser.utils.Utils.EOL;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CommentsInserterTest {
+class CommentsInserterTest {
     private String makeFilename(String sampleName) {
         return "com/github/javaparser/issue_samples/" + sampleName + ".java.txt";
     }
@@ -47,7 +48,7 @@ public class CommentsInserterTest {
      * Issue: "When there is a String constant "\\" compilationUnit ignores all further comments"
      */
     @Test
-    public void issue290() throws IOException {
+    void issue290() throws IOException {
         ParseResult result = parseSample("Issue290");
         CommentsCollection cc = (CommentsCollection) result.getCommentsCollection().get();
         assertEquals(1, cc.getLineComments().size());
@@ -55,13 +56,13 @@ public class CommentsInserterTest {
     }
 
     @Test
-    public void issue624() throws IOException {
+    void issue624() throws IOException {
         parseResource(makeFilename("Issue624"));
         // Should not fail
     }
 
     @Test
-    public void issue200EnumConstantsWithCommentsForceVerticalAlignment() {
+    void issue200EnumConstantsWithCommentsForceVerticalAlignment() {
         CompilationUnit cu = parse("public enum X {" + EOL +
                 "    /** const1 javadoc */" + EOL +
                 "    BORDER_CONSTANT," + EOL +
@@ -82,7 +83,7 @@ public class CommentsInserterTest {
     }
 
     @Test
-    public void issue234LosingCommentsInArrayInitializerExpr() {
+    void issue234LosingCommentsInArrayInitializerExpr() {
         CompilationUnit cu = parse("@Anno(stuff={" + EOL +
                 "    // Just," + EOL +
                 "    // an," + EOL +

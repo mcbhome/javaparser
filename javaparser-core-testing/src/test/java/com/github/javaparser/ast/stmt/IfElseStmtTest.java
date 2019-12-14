@@ -1,37 +1,56 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.ast.stmt;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parseStatement;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class IfElseStmtTest {
+class IfElseStmtTest {
 
     @Test
-    public void issue1247withElseSingleStmt() {
-        IfStmt ifStmt = (IfStmt) JavaParser.parseStatement("if (cond) doSomething(); else doSomethingElse();");
-        assertEquals(false, ifStmt.hasElseBlock());
-        assertEquals(true, ifStmt.hasElseBranch());
-        assertEquals(false, ifStmt.hasCascadingIfStmt());
+    void issue1247withElseSingleStmt() {
+        IfStmt ifStmt = parseStatement("if (cond) doSomething(); else doSomethingElse();").asIfStmt();
+        assertFalse(ifStmt.hasElseBlock());
+        assertTrue(ifStmt.hasElseBranch());
+        assertFalse(ifStmt.hasCascadingIfStmt());
     }
 
     @Test
-    public void issue1247withElseBlockStmt() {
-        IfStmt ifStmt = (IfStmt) JavaParser.parseStatement("if (cond) doSomething(); else { doSomethingElse(); }");
-        assertEquals(true, ifStmt.hasElseBlock());
-        assertEquals(true, ifStmt.hasElseBranch());
-        assertEquals(false, ifStmt.hasCascadingIfStmt());
+    void issue1247withElseBlockStmt() {
+        IfStmt ifStmt = parseStatement("if (cond) doSomething(); else { doSomethingElse(); }").asIfStmt();
+        assertTrue(ifStmt.hasElseBlock());
+        assertTrue(ifStmt.hasElseBranch());
+        assertFalse(ifStmt.hasCascadingIfStmt());
     }
 
     @Test
-    public void issue1247withElseSingleStmtWhichIsAnIf() {
-        IfStmt ifStmt = (IfStmt) JavaParser.parseStatement("if (cond1) doSomething(); else if (cond2) doSomethingElse();");
-        assertEquals(false, ifStmt.hasElseBlock());
-        assertEquals(true, ifStmt.hasElseBranch());
-        assertEquals(true, ifStmt.hasCascadingIfStmt());
+    void issue1247withElseSingleStmtWhichIsAnIf() {
+        IfStmt ifStmt = parseStatement("if (cond1) doSomething(); else if (cond2) doSomethingElse();").asIfStmt();
+        assertFalse(ifStmt.hasElseBlock());
+        assertTrue(ifStmt.hasElseBranch());
+        assertTrue(ifStmt.hasCascadingIfStmt());
     }
 
 }

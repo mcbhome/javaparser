@@ -1,34 +1,44 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.resolution.typesolvers;
 
-import com.github.javaparser.symbolsolver.AbstractTest;
-import org.junit.Test;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.symbolsolver.AbstractSymbolResolutionTest;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-public class JarTypeSolverTest extends AbstractTest {
+class JarTypeSolverTest extends AbstractSymbolResolutionTest {
 
     @Test
-    public void initial() throws IOException {
+    void initial() throws IOException {
         Path pathToJar = adaptPath("src/test/resources/javaparser-core-2.1.0.jar");
         JarTypeSolver jarTypeSolver = new JarTypeSolver(pathToJar);
         assertEquals(true, jarTypeSolver.tryToSolveType("com.github.javaparser.SourcesHelper").isSolved());
@@ -37,6 +47,45 @@ public class JarTypeSolverTest extends AbstractTest {
         assertEquals(false, jarTypeSolver.tryToSolveType("com.github.javaparser.ASTParser.Foo").isSolved());
         assertEquals(false, jarTypeSolver.tryToSolveType("com.github.javaparser.Foo").isSolved());
         assertEquals(false, jarTypeSolver.tryToSolveType("Foo").isSolved());
+    }
+
+    @Test
+    void dependenciesBetweenJarsNotTriggeringReferences() throws IOException {
+        Path pathToJar1 = adaptPath("src/test/resources/jar1.jar");
+        JarTypeSolver jarTypeSolver1 = new JarTypeSolver(pathToJar1);
+        assertEquals(true, jarTypeSolver1.tryToSolveType("foo.bar.A").isSolved());
+
+        Path pathToJar2 = adaptPath("src/test/resources/jar2.jar");
+        JarTypeSolver jarTypeSolver2 = new JarTypeSolver(pathToJar2);
+        assertEquals(true, jarTypeSolver2.tryToSolveType("foo.zum.B").isSolved());
+
+
+    }
+
+    @Test
+    void dependenciesBetweenJarsTriggeringReferencesThatCannotBeResolved() throws IOException {
+        assertThrows(UnsolvedSymbolException.class, () -> {
+            Path pathToJar2 = adaptPath("src/test/resources/jar2.jar");
+        JarTypeSolver jarTypeSolver2 = new JarTypeSolver(pathToJar2);
+        ResolvedReferenceTypeDeclaration b = jarTypeSolver2.tryToSolveType("foo.zum.B").getCorrespondingDeclaration();
+        b.getAncestors();
+    });
+        
+        }
+
+    @Test
+    void dependenciesBetweenJarsTriggeringReferencesThatCanBeResolved() throws IOException {
+        Path pathToJar1 = adaptPath("src/test/resources/jar1.jar");
+        JarTypeSolver jarTypeSolver1 = new JarTypeSolver(pathToJar1);
+
+        Path pathToJar2 = adaptPath("src/test/resources/jar2.jar");
+        JarTypeSolver jarTypeSolver2 = new JarTypeSolver(pathToJar2);
+
+        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver(jarTypeSolver1, jarTypeSolver2);
+
+        ResolvedReferenceTypeDeclaration b = combinedTypeSolver.tryToSolveType("foo.zum.B").getCorrespondingDeclaration();
+        List<ResolvedReferenceType> ancestors = b.getAncestors();
+        assertEquals(1, ancestors.size());
     }
 
 }

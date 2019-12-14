@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2017 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,14 +21,14 @@
 
 package com.github.javaparser.javadoc.description;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class JavadocInlineTagTest {
+class JavadocInlineTagTest {
 
     @Test
-    public void javadocInlineTagShouldPersistCustomTagNames() {
+    void javadocInlineTagShouldPersistCustomTagNames() {
         String tag = JavadocInlineTag.fromText("{@foo something}").toText();
 
         assertEquals(tag, "{@foo something}");

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -24,25 +24,23 @@ package com.github.javaparser.ast.body;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
 import com.github.javaparser.ast.expr.SimpleName;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class AnnotationMemberDeclarationTest {
+class AnnotationMemberDeclarationTest {
 
     @Test
-    public void whenSettingNameTheParentOfNameIsAssigned() {
+    void whenSettingNameTheParentOfNameIsAssigned() {
         AnnotationMemberDeclaration decl = new AnnotationMemberDeclaration();
         SimpleName name = new SimpleName("foo");
         decl.setName(name);
         assertTrue(name.getParentNode().isPresent());
-        assertTrue(decl == name.getParentNode().get());
+        assertSame(decl, name.getParentNode().get());
     }
 
     @Test
-    public void removeDefaultValueWhenNoDefaultValueIsPresent() {
+    void removeDefaultValueWhenNoDefaultValueIsPresent() {
         AnnotationMemberDeclaration decl = new AnnotationMemberDeclaration();
         SimpleName name = new SimpleName("foo");
         decl.setName(name);
@@ -53,7 +51,7 @@ public class AnnotationMemberDeclarationTest {
     }
 
     @Test
-    public void removeDefaultValueWhenDefaultValueIsPresent() {
+    void removeDefaultValueWhenDefaultValueIsPresent() {
         AnnotationMemberDeclaration decl = new AnnotationMemberDeclaration();
         SimpleName name = new SimpleName("foo");
         decl.setName(name);

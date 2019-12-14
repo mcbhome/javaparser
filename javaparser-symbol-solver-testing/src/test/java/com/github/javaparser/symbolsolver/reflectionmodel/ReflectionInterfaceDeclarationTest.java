@@ -1,75 +1,77 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.reflectionmodel;
 
+import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedTypeVariable;
-import com.github.javaparser.symbolsolver.AbstractTest;
+import com.github.javaparser.symbolsolver.AbstractSymbolResolutionTest;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static java.util.Comparator.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ReflectionInterfaceDeclarationTest extends AbstractTest {
+class ReflectionInterfaceDeclarationTest extends AbstractSymbolResolutionTest {
 
     @Test
-    public void testGetDeclaredMethods() {
+    void testGetDeclaredMethods() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedReferenceTypeDeclaration list = new ReflectionInterfaceDeclaration(List.class, typeResolver);
         List<ResolvedMethodDeclaration> methods = list.getDeclaredMethods().stream()
-                .sorted((a, b) -> a.getName().compareTo(b.getName()))
+                .sorted(comparing(ResolvedDeclaration::getName))
                 .collect(Collectors.toList());
-        if (isJava9()) {
-            assertEquals(40, methods.size());
-            assertEquals("clear", methods.get(4).getName());
-            assertEquals(true, methods.get(4).isAbstract());
-            assertEquals(0, methods.get(4).getNumberOfParams());
-            assertEquals("contains", methods.get(5).getName());
-            assertEquals(true, methods.get(5).isAbstract());
-            assertEquals(1, methods.get(5).getNumberOfParams());
-            assertEquals(true, methods.get(5).getParam(0).getType().isReferenceType());
-            assertEquals(Object.class.getCanonicalName(), methods.get(5).getParam(0).getType().asReferenceType().getQualifiedName());
-        } else {
-            assertEquals(28, methods.size());
-            assertEquals("clear", methods.get(4).getName());
-            assertEquals(true, methods.get(4).isAbstract());
-            assertEquals(0, methods.get(4).getNumberOfParams());
-            assertEquals("contains", methods.get(5).getName());
-            assertEquals(true, methods.get(5).isAbstract());
-            assertEquals(1, methods.get(5).getNumberOfParams());
-            assertEquals(true, methods.get(5).getParam(0).getType().isReferenceType());
-            assertEquals(Object.class.getCanonicalName(), methods.get(5).getParam(0).getType().asReferenceType().getQualifiedName());
+        int foundCount = 0;
+        for (ResolvedMethodDeclaration method : methods) {
+            switch (method.getName()) {
+                case "clear":
+                    assertTrue(method.isAbstract());
+                    assertEquals(0, method.getNumberOfParams());
+                    foundCount++;
+                    break;
+                case "contains":
+                    assertEquals(true, method.isAbstract());
+                    assertEquals(1, method.getNumberOfParams());
+                    assertEquals(true, method.getParam(0).getType().isReferenceType());
+                    assertEquals(Object.class.getCanonicalName(), method.getParam(0).getType().asReferenceType().getQualifiedName());
+                    foundCount++;
+                    break;
+            }
         }
+        assertEquals(2, foundCount);
     }
 
     @Test
-    public void testAllAncestors() {
+    void testAllAncestors() {
         TypeSolver typeResolver = new ReflectionTypeSolver();
         ResolvedInterfaceDeclaration list = new ReflectionInterfaceDeclaration(List.class, typeResolver);
         Map<String, ResolvedReferenceType> ancestors = new HashMap<>();

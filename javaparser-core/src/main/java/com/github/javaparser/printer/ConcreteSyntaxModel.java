@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -403,10 +403,11 @@ public class ConcreteSyntaxModel {
                 attribute(ObservableProperty.IDENTIFIER)
         ));
 
+        concreteSyntaxModelByClass.put(Modifier.class, attribute(ObservableProperty.KEYWORD));
+
         concreteSyntaxModelByClass.put(Name.class, sequence(
                 comment(),
                 conditional(ObservableProperty.QUALIFIER, IS_PRESENT, sequence(child(ObservableProperty.QUALIFIER), token(GeneratedJavaParserConstants.DOT))),
-                list(ObservableProperty.ANNOTATIONS, space(), none(), space()),
                 attribute(ObservableProperty.IDENTIFIER),
                 orphanCommentsEnding()
         ));
@@ -470,15 +471,20 @@ public class ConcreteSyntaxModel {
                 stringToken(ObservableProperty.VALUE)
         ));
 
+        concreteSyntaxModelByClass.put(TextBlockLiteralExpr.class, sequence(
+                comment(),
+                textBlockToken(ObservableProperty.VALUE)
+        ));
+
         concreteSyntaxModelByClass.put(SuperExpr.class, sequence(
                 comment(),
-                conditional(ObservableProperty.CLASS_EXPR, IS_PRESENT, sequence(child(ObservableProperty.CLASS_EXPR), token(GeneratedJavaParserConstants.DOT))),
+                conditional(TYPE_NAME, IS_PRESENT, sequence(child(TYPE_NAME), token(GeneratedJavaParserConstants.DOT))),
                 token(GeneratedJavaParserConstants.SUPER)
         ));
 
         concreteSyntaxModelByClass.put(ThisExpr.class, sequence(
                 comment(),
-                conditional(ObservableProperty.CLASS_EXPR, IS_PRESENT, sequence(child(CLASS_EXPR), token(GeneratedJavaParserConstants.DOT))),
+                conditional(TYPE_NAME, IS_PRESENT, sequence(child(TYPE_NAME), token(GeneratedJavaParserConstants.DOT))),
                 token(GeneratedJavaParserConstants.THIS)
         ));
 
@@ -602,7 +608,7 @@ public class ConcreteSyntaxModel {
                 semicolon()
         ));
 
-        concreteSyntaxModelByClass.put(ForeachStmt.class, sequence(
+        concreteSyntaxModelByClass.put(ForEachStmt.class, sequence(
                 comment(),
                 token(GeneratedJavaParserConstants.FOR),
                 space(),
@@ -667,14 +673,22 @@ public class ConcreteSyntaxModel {
                 child(ObservableProperty.CLASS_DECLARATION)
         ));
 
-        concreteSyntaxModelByClass.put(ReturnStmt.class, sequence(comment(), token(GeneratedJavaParserConstants.RETURN),
+        concreteSyntaxModelByClass.put(ReturnStmt.class, sequence(
+                comment(),
+                token(GeneratedJavaParserConstants.RETURN),
                 conditional(ObservableProperty.EXPRESSION, IS_PRESENT, sequence(space(), child(ObservableProperty.EXPRESSION))),
                 semicolon()));
 
-        concreteSyntaxModelByClass.put(SwitchEntryStmt.class, sequence(
+        concreteSyntaxModelByClass.put(YieldStmt.class, sequence(
                 comment(),
-                conditional(ObservableProperty.LABEL, IS_PRESENT,
-                        sequence(token(GeneratedJavaParserConstants.CASE), space(), child(ObservableProperty.LABEL), token(GeneratedJavaParserConstants.COLON)),
+                token(YIELD),
+                conditional(ObservableProperty.EXPRESSION, IS_PRESENT, sequence(space(), child(ObservableProperty.EXPRESSION))),
+                semicolon()));
+
+        concreteSyntaxModelByClass.put(SwitchEntry.class, sequence(
+                comment(),
+                conditional(ObservableProperty.LABELS, IS_NOT_EMPTY,
+                        sequence(token(GeneratedJavaParserConstants.CASE), space(), list(ObservableProperty.LABELS), token(GeneratedJavaParserConstants.COLON)),
                         sequence(token(GeneratedJavaParserConstants._DEFAULT), token(GeneratedJavaParserConstants.COLON))),
                 newline(),
                 indent(),
@@ -683,6 +697,19 @@ public class ConcreteSyntaxModel {
         ));
 
         concreteSyntaxModelByClass.put(SwitchStmt.class, sequence(
+                comment(),
+                token(GeneratedJavaParserConstants.SWITCH),
+                token(GeneratedJavaParserConstants.LPAREN),
+                child(ObservableProperty.SELECTOR),
+                token(GeneratedJavaParserConstants.RPAREN),
+                space(),
+                token(GeneratedJavaParserConstants.LBRACE),
+                newline(),
+                list(ObservableProperty.ENTRIES, none(), indent(), unindent()),
+                token(GeneratedJavaParserConstants.RBRACE)
+        ));
+
+        concreteSyntaxModelByClass.put(SwitchExpr.class, sequence(
                 comment(),
                 token(GeneratedJavaParserConstants.SWITCH),
                 token(GeneratedJavaParserConstants.LPAREN),
@@ -854,13 +881,13 @@ public class ConcreteSyntaxModel {
                 token(GeneratedJavaParserConstants.LBRACE),
                 newline(),
                 indent(),
-                list(ObservableProperty.MODULE_STMTS),
+                list(ObservableProperty.DIRECTIVES),
                 unindent(),
                 token(GeneratedJavaParserConstants.RBRACE),
                 newline()
         ));
 
-        concreteSyntaxModelByClass.put(ModuleExportsStmt.class, sequence(
+        concreteSyntaxModelByClass.put(ModuleExportsDirective.class, sequence(
                 token(GeneratedJavaParserConstants.EXPORTS),
                 space(),
                 child(ObservableProperty.NAME),
@@ -872,7 +899,7 @@ public class ConcreteSyntaxModel {
                 newline()
         ));
 
-        concreteSyntaxModelByClass.put(ModuleOpensStmt.class, sequence(
+        concreteSyntaxModelByClass.put(ModuleOpensDirective.class, sequence(
                 token(GeneratedJavaParserConstants.OPENS),
                 space(),
                 child(ObservableProperty.NAME),
@@ -884,11 +911,11 @@ public class ConcreteSyntaxModel {
                 newline()
         ));
 
-        concreteSyntaxModelByClass.put(ModuleProvidesStmt.class, sequence(
+        concreteSyntaxModelByClass.put(ModuleProvidesDirective.class, sequence(
                 token(GeneratedJavaParserConstants.PROVIDES),
                 space(),
-                child(ObservableProperty.TYPE),
-                list(ObservableProperty.WITH_TYPES,
+                child(ObservableProperty.NAME),
+                list(ObservableProperty.WITH,
                         sequence(comma(), space()),
                         sequence(space(), token(GeneratedJavaParserConstants.WITH), space()),
                         none()),
@@ -896,7 +923,7 @@ public class ConcreteSyntaxModel {
                 newline()
         ));
 
-        concreteSyntaxModelByClass.put(ModuleRequiresStmt.class, sequence(
+        concreteSyntaxModelByClass.put(ModuleRequiresDirective.class, sequence(
                 token(GeneratedJavaParserConstants.REQUIRES),
                 space(),
                 modifiers(),
@@ -905,10 +932,10 @@ public class ConcreteSyntaxModel {
                 newline()
         ));
 
-        concreteSyntaxModelByClass.put(ModuleUsesStmt.class, sequence(
+        concreteSyntaxModelByClass.put(ModuleUsesDirective.class, sequence(
                 token(GeneratedJavaParserConstants.USES),
                 space(),
-                child(ObservableProperty.TYPE),
+                child(ObservableProperty.NAME),
                 semicolon(),
                 newline()
         ));
@@ -920,7 +947,7 @@ public class ConcreteSyntaxModel {
         if (unsupportedNodeClassNames.isEmpty()) {
             initializationError = Optional.empty();
         } else {
-            initializationError = Optional.of("The CSM should include support for these classes: " + String.join(", ", unsupportedNodeClassNames));
+            initializationError = Optional.of("The " + ConcreteSyntaxModel.class.getSimpleName() + " should include support for these classes: " + String.join(", ", unsupportedNodeClassNames));
         }
     }
 
@@ -935,7 +962,7 @@ public class ConcreteSyntaxModel {
     public static String genericPrettyPrint(Node node) {
         SourcePrinter sourcePrinter = new SourcePrinter();
         forClass(node.getClass()).prettyPrint(node, sourcePrinter);
-        return sourcePrinter.getSource();
+        return sourcePrinter.toString();
     }
 
     public static CsmElement forClass(Class<? extends Node> nodeClazz) {

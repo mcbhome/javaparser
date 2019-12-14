@@ -1,9 +1,29 @@
+/*
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.symbolsolver;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseStart;
 import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.StreamProvider;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.resolution.declarations.*;
@@ -13,32 +33,31 @@ import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import com.github.javaparser.symbolsolver.utils.LeanParserConfiguration;
 import com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
 import static com.github.javaparser.Providers.provider;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class JavaParserAPIIntegrationTest extends AbstractTest {
+class JavaParserAPIIntegrationTest extends AbstractSymbolResolutionTest {
 
     private TypeSolver typeSolver;
     private ResolvedReferenceType string;
     private ResolvedReferenceType listOfBoolean;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         Path src = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core");
         CombinedTypeSolver combinedTypeSolverNewCode = new CombinedTypeSolver();
         combinedTypeSolverNewCode.add(new ReflectionTypeSolver());
-        combinedTypeSolverNewCode.add(new JavaParserTypeSolver(src));
-        combinedTypeSolverNewCode.add(new JavaParserTypeSolver(adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-generated-sources")));
+        combinedTypeSolverNewCode.add(new JavaParserTypeSolver(src, new LeanParserConfiguration()));
+        combinedTypeSolverNewCode.add(new JavaParserTypeSolver(adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-generated-sources"), new LeanParserConfiguration()));
         typeSolver = combinedTypeSolverNewCode;
 
         TypeSolver ts = new ReflectionTypeSolver();
@@ -48,7 +67,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void annotationDeclarationResolve() throws IOException {
+    void annotationDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/resources/Annotations.java.txt");
         CompilationUnit cu = parseWithSymbolResolution(f);
         AnnotationDeclaration declaration = (AnnotationDeclaration)cu.getType(0);
@@ -57,19 +76,19 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void annotationMemberDeclarationResolve() throws IOException {
+    void annotationMemberDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/resources/Annotations.java.txt");
         ParserConfiguration parserConfiguration = new ParserConfiguration();
         parserConfiguration.setSymbolResolver(new JavaSymbolSolver(typeSolver));
         CompilationUnit cu = new JavaParser(parserConfiguration).parse(ParseStart.COMPILATION_UNIT, provider(f)).getResult().get();
-        AnnotationDeclaration declaration = (AnnotationDeclaration)cu.getType(2);
-        assertEquals("MyAnnotationWithFields", declaration.getNameAsString());
+        AnnotationDeclaration declaration = (AnnotationDeclaration)cu.getType(3);
+        assertEquals("MyAnnotationWithElements", declaration.getNameAsString());
         AnnotationMemberDeclaration memberDeclaration = (AnnotationMemberDeclaration)declaration.getMember(0);
         ResolvedAnnotationMemberDeclaration resolvedDeclaration = memberDeclaration.resolve();
     }
 
     @Test
-    public void classDeclarationResolve() throws IOException {
+    void classDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/CompilationUnit.java");
         CompilationUnit cu = parseWithSymbolResolution(f);
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration)cu.getType(0);
@@ -77,7 +96,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void interfaceDeclarationResolve() throws IOException {
+    void interfaceDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/resources/MethodTypeParams.java.txt");
         CompilationUnit cu = parseWithSymbolResolution(f);
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration)cu.getType(1);
@@ -93,7 +112,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void constructorDeclarationResolve() throws IOException {
+    void constructorDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/CompilationUnit.java");
         CompilationUnit cu = parseWithSymbolResolution(f);
         ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration)cu.getType(0);
@@ -101,7 +120,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
         ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
     }
     @Test
-    public void enumDeclarationResolve() throws IOException {
+    void enumDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/AccessSpecifier.java");
         CompilationUnit cu = parseWithSymbolResolution(f);
         EnumDeclaration declaration = (EnumDeclaration) cu.getType(0);
@@ -110,7 +129,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void enumConstantDeclarationResolve() throws IOException {
+    void enumConstantDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/AccessSpecifier.java");
         CompilationUnit cu = parseWithSymbolResolution(f);
         EnumDeclaration enumDeclaration = (EnumDeclaration) cu.getType(0);
@@ -121,7 +140,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void fieldDeclarationResolve() throws IOException {
+    void fieldDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/CompilationUnit.java");
         CompilationUnit cu = parseWithSymbolResolution(f);
         ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) cu.getType(0);
@@ -133,7 +152,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     // TODO make VariableDeclarator resolvable
 
     @Test
-    public void methodDeclarationResolve() throws IOException {
+    void methodDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/CompilationUnit.java");
         CompilationUnit cu = parseWithSymbolResolution(f);
         ClassOrInterfaceDeclaration classDeclaration = (ClassOrInterfaceDeclaration) cu.getType(0);
@@ -145,7 +164,7 @@ public class JavaParserAPIIntegrationTest extends AbstractTest {
     }
 
     @Test
-    public void parameterDeclarationResolve() throws IOException {
+    void parameterDeclarationResolve() throws IOException {
         Path f = adaptPath("src/test/test_sourcecode/javaparser_new_src/javaparser-core/com/github/javaparser/ast/CompilationUnit.java");
         ParserConfiguration parserConfiguration = new ParserConfiguration();
         parserConfiguration.setSymbolResolver(new JavaSymbolSolver(typeSolver));

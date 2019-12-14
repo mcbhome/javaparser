@@ -1,6 +1,26 @@
+/*
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.symbolsolver.resolution;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.AccessSpecifier;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
@@ -9,8 +29,9 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.logic.AbstractClassDeclaration;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.MemoryTypeSolver;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -18,12 +39,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * See issue #16
  */
-public class DefaultPackageTest {
+class DefaultPackageTest {
 
     private class MyClassDeclaration extends AbstractClassDeclaration {
 
@@ -54,7 +77,7 @@ public class DefaultPackageTest {
         }
 
         @Override
-        public List<ResolvedReferenceType> getAncestors() {
+        public List<ResolvedReferenceType> getAncestors(boolean acceptIncompleteList) {
             throw new UnsupportedOperationException();
         }
 
@@ -122,37 +145,46 @@ public class DefaultPackageTest {
         public Optional<ResolvedReferenceTypeDeclaration> containerType() {
             throw new UnsupportedOperationException();
         }
+
+        @Override
+        public SymbolReference<ResolvedMethodDeclaration> solveMethod(String name, List<ResolvedType> argumentsTypes, boolean staticOnly) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Test
-    public void aClassInDefaultPackageCanBeAccessedFromTheDefaultPackage() {
+    void aClassInDefaultPackageCanBeAccessedFromTheDefaultPackage() {
         String code = "class A extends B {}";
         MemoryTypeSolver memoryTypeSolver = new MemoryTypeSolver();
         memoryTypeSolver.addDeclaration("B", new MyClassDeclaration("B"));
 
-        ClassOrInterfaceType jpType = JavaParser.parse(code).getClassByName("A").get().getExtendedTypes(0);
+        ClassOrInterfaceType jpType = parse(code).getClassByName("A").get().getExtendedTypes(0);
         ResolvedType resolvedType = JavaParserFacade.get(memoryTypeSolver).convertToUsage(jpType);
         assertEquals("B", resolvedType.asReferenceType().getQualifiedName());
     }
 
-    @Test(expected = UnsolvedSymbolException.class)
-    public void aClassInDefaultPackageCanBeAccessedFromOutsideTheDefaultPackageImportingIt() {
-        String code = "package myPackage; import B; class A extends B {}";
+    @Test
+    void aClassInDefaultPackageCanBeAccessedFromOutsideTheDefaultPackageImportingIt() {
+        assertThrows(UnsolvedSymbolException.class, () -> {
+            String code = "package myPackage; import B; class A extends B {}";
         MemoryTypeSolver memoryTypeSolver = new MemoryTypeSolver();
         memoryTypeSolver.addDeclaration("B", new MyClassDeclaration("B"));
-
-        ClassOrInterfaceType jpType = JavaParser.parse(code).getClassByName("A").get().getExtendedTypes(0);
+        ClassOrInterfaceType jpType = parse(code).getClassByName("A").get().getExtendedTypes(0);
         ResolvedType resolvedType = JavaParserFacade.get(memoryTypeSolver).convertToUsage(jpType);
         assertEquals("B", resolvedType.asReferenceType().getQualifiedName());
-    }
+    });
+                
+                }
 
-    @Test(expected = UnsolvedSymbolException.class)
-    public void aClassInDefaultPackageCanBeAccessedFromOutsideTheDefaultPackageWithoutImportingIt() {
-        String code = "package myPackage; class A extends B {}";
+    @Test
+    void aClassInDefaultPackageCanBeAccessedFromOutsideTheDefaultPackageWithoutImportingIt() {
+        assertThrows(UnsolvedSymbolException.class, () -> {
+            String code = "package myPackage; class A extends B {}";
         MemoryTypeSolver memoryTypeSolver = new MemoryTypeSolver();
         memoryTypeSolver.addDeclaration("B", new MyClassDeclaration("B"));
-
-        ResolvedType resolvedType = JavaParserFacade.get(memoryTypeSolver).convertToUsage(JavaParser.parse(code).getClassByName("A").get().getExtendedTypes(0));
+        ResolvedType resolvedType = JavaParserFacade.get(memoryTypeSolver).convertToUsage(parse(code).getClassByName("A").get().getExtendedTypes(0));
         assertEquals("B", resolvedType.asReferenceType().getQualifiedName());
-    }
+    });
+                
+        }
 }

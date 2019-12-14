@@ -1,16 +1,38 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.ast.body;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static com.github.javaparser.StaticJavaParser.parseBodyDeclaration;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ClassOrInterfaceDeclarationTest {
+class ClassOrInterfaceDeclarationTest {
     @Test
-    public void staticNestedClass() {
-        CompilationUnit cu = JavaParser.parse("class X{static class Y{}}");
+    void staticNestedClass() {
+        CompilationUnit cu = parse("class X{static class Y{}}");
         ClassOrInterfaceDeclaration y = cu.getClassByName("X").get().getMembers().get(0).asClassOrInterfaceDeclaration();
 
         assertFalse(y.isInnerClass());
@@ -19,8 +41,8 @@ public class ClassOrInterfaceDeclarationTest {
     }
 
     @Test
-    public void nestedInterface() {
-        CompilationUnit cu = JavaParser.parse("class X{interface Y{}}");
+    void nestedInterface() {
+        CompilationUnit cu = parse("class X{interface Y{}}");
         ClassOrInterfaceDeclaration y = cu.getClassByName("X").get().getMembers().get(0).asClassOrInterfaceDeclaration();
 
         assertFalse(y.isInnerClass());
@@ -29,8 +51,8 @@ public class ClassOrInterfaceDeclarationTest {
     }
 
     @Test
-    public void nonStaticNestedClass() {
-        CompilationUnit cu = JavaParser.parse("class X{class Y{}}");
+    void nonStaticNestedClass() {
+        CompilationUnit cu = parse("class X{class Y{}}");
         ClassOrInterfaceDeclaration y = cu.getClassByName("X").get().getMembers().get(0).asClassOrInterfaceDeclaration();
 
         assertTrue(y.isInnerClass());
@@ -39,8 +61,8 @@ public class ClassOrInterfaceDeclarationTest {
     }
 
     @Test
-    public void topClass() {
-        CompilationUnit cu = JavaParser.parse("class X{}");
+    void topClass() {
+        CompilationUnit cu = parse("class X{}");
         ClassOrInterfaceDeclaration y = cu.getClassByName("X").get();
 
         assertFalse(y.isInnerClass());
@@ -49,8 +71,8 @@ public class ClassOrInterfaceDeclarationTest {
     }
 
     @Test
-    public void localClass() {
-        MethodDeclaration method= (MethodDeclaration)JavaParser.parseBodyDeclaration("void x(){class X{};}");
+    void localClass() {
+        MethodDeclaration method = parseBodyDeclaration("void x(){class X{};}").asMethodDeclaration();
         ClassOrInterfaceDeclaration x = method.findFirst(ClassOrInterfaceDeclaration.class).get();
 
         assertFalse(x.isInnerClass());

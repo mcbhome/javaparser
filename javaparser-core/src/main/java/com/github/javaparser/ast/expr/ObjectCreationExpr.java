@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -39,14 +39,13 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.ObjectCreationExprMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-import javax.annotation.Generated;
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.metamodel.OptionalProperty;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-
 import java.util.function.Consumer;
+import com.github.javaparser.ast.Generated;
 
 /**
  * A constructor call.
@@ -58,7 +57,7 @@ import java.util.function.Consumer;
  *
  * @author Julio Vilmar Gesser
  */
-public final class ObjectCreationExpr extends Expression implements NodeWithTypeArguments<ObjectCreationExpr>, NodeWithType<ObjectCreationExpr, ClassOrInterfaceType>, NodeWithArguments<ObjectCreationExpr>, NodeWithOptionalScope<ObjectCreationExpr>, Resolvable<ResolvedConstructorDeclaration> {
+public class ObjectCreationExpr extends Expression implements NodeWithTypeArguments<ObjectCreationExpr>, NodeWithType<ObjectCreationExpr, ClassOrInterfaceType>, NodeWithArguments<ObjectCreationExpr>, NodeWithOptionalScope<ObjectCreationExpr>, Resolvable<ResolvedConstructorDeclaration> {
 
     @OptionalProperty
     private Expression scope;
@@ -85,7 +84,7 @@ public final class ObjectCreationExpr extends Expression implements NodeWithType
      * @param arguments Any arguments to pass to the constructor
      */
     public ObjectCreationExpr(final Expression scope, final ClassOrInterfaceType type, final NodeList<Expression> arguments) {
-        this(null, scope, type, new NodeList<>(), arguments, null);
+        this(null, scope, type, null, arguments, null);
     }
 
     @AllFieldsConstructor
@@ -363,14 +362,6 @@ public final class ObjectCreationExpr extends Expression implements NodeWithType
     @Override
     public ResolvedConstructorDeclaration resolve() {
         return getSymbolResolver().resolveDeclaration(this, ResolvedConstructorDeclaration.class);
-    }
-
-    /**
-     * @deprecated Call {@link #resolve()} instead.
-     */
-    @Deprecated
-    public ResolvedConstructorDeclaration resolveInvokedConstructor() {
-        return resolve();
     }
 
     @Override

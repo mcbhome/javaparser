@@ -1,21 +1,28 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.javaparsermodel.contexts;
 
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
@@ -29,10 +36,12 @@ import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.model.resolution.Value;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static com.github.javaparser.symbolsolver.javaparser.Navigator.getParentNode;
 import static com.github.javaparser.symbolsolver.javaparser.Navigator.requireParentNode;
 
 public class TryWithResourceContext extends AbstractJavaParserContext<TryStmt> {
@@ -42,7 +51,7 @@ public class TryWithResourceContext extends AbstractJavaParserContext<TryStmt> {
     }
 
     @Override
-    public Optional<Value> solveSymbolAsValue(String name, TypeSolver typeSolver) {
+    public Optional<Value> solveSymbolAsValue(String name) {
         for (Expression expr : wrappedNode.getResources()) {
             if (expr instanceof VariableDeclarationExpr) {
                 for (VariableDeclarator v : ((VariableDeclarationExpr)expr).getVariables()) {
@@ -57,12 +66,12 @@ public class TryWithResourceContext extends AbstractJavaParserContext<TryStmt> {
         if (requireParentNode(wrappedNode) instanceof BlockStmt) {
             return StatementContext.solveInBlockAsValue(name, typeSolver, wrappedNode);
         } else {
-            return getParent().solveSymbolAsValue(name, typeSolver);
+            return getParent().solveSymbolAsValue(name);
         }
     }
 
     @Override
-    public SymbolReference<? extends ResolvedValueDeclaration> solveSymbol(String name, TypeSolver typeSolver) {
+    public SymbolReference<? extends ResolvedValueDeclaration> solveSymbol(String name) {
         for (Expression expr : wrappedNode.getResources()) {
             if (expr instanceof VariableDeclarationExpr) {
                 for (VariableDeclarator v : ((VariableDeclarationExpr)expr).getVariables()) {
@@ -76,13 +85,37 @@ public class TryWithResourceContext extends AbstractJavaParserContext<TryStmt> {
         if (requireParentNode(wrappedNode) instanceof BlockStmt) {
             return StatementContext.solveInBlock(name, typeSolver, wrappedNode);
         } else {
-            return getParent().solveSymbol(name, typeSolver);
+            return getParent().solveSymbol(name);
         }
     }
 
     @Override
     public SymbolReference<ResolvedMethodDeclaration> solveMethod(String name, List<ResolvedType> argumentsTypes,
-                                                                  boolean staticOnly, TypeSolver typeSolver) {
-        return getParent().solveMethod(name, argumentsTypes, false, typeSolver);
+                                                                  boolean staticOnly) {
+        return getParent().solveMethod(name, argumentsTypes, false);
+    }
+
+    @Override
+    public List<VariableDeclarator> localVariablesExposedToChild(Node child) {
+        NodeList<Expression> resources = wrappedNode.getResources();
+        for (int i=0;i<resources.size();i++) {
+            if (child == resources.get(i)) {
+                return resources.subList(0, i).stream()
+                        .map(e -> e instanceof VariableDeclarationExpr ? ((VariableDeclarationExpr) e).getVariables()
+                                : Collections.<VariableDeclarator>emptyList())
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
+            }
+        }
+        if (child == wrappedNode.getTryBlock()) {
+            List<VariableDeclarator> res = new LinkedList<>();
+            for (Expression expr : resources) {
+                if (expr instanceof VariableDeclarationExpr) {
+                    res.addAll(((VariableDeclarationExpr)expr).getVariables());
+                }
+            }
+            return res;
+        }
+        return Collections.emptyList();
     }
 }

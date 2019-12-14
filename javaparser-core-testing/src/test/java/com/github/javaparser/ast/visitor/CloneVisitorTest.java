@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -24,31 +24,32 @@ package com.github.javaparser.ast.visitor;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.type.Type;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 
-import static com.github.javaparser.JavaParser.*;
-import static org.junit.Assert.assertEquals;
+import static com.github.javaparser.StaticJavaParser.parseType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CloneVisitorTest {
+class CloneVisitorTest {
     CompilationUnit cu;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         cu = new CompilationUnit();
     }
 
-    @After
-    public void teardown() {
+    @AfterEach
+    void teardown() {
         cu = null;
     }
 
     @Test
-    public void cloneJavaDocTest() {
+    void cloneJavaDocTest() {
         NodeList<BodyDeclaration<?>> bodyDeclarationList = new NodeList<>();
         bodyDeclarationList.add(new AnnotationMemberDeclaration().setJavadocComment("javadoc"));
         bodyDeclarationList.add(new ConstructorDeclaration().setJavadocComment("javadoc"));
@@ -99,7 +100,7 @@ public class CloneVisitorTest {
     }
     
     @Test
-    public void cloneAnnotationOnWildcardTypeArgument() {
+    void cloneAnnotationOnWildcardTypeArgument() {
         Type type = parseType("List<@C ? extends Object>").clone();
         assertEquals("List<@C ? extends Object>", type.toString());
     }

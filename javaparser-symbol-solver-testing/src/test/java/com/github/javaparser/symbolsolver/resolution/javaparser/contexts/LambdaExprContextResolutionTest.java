@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.resolution.javaparser.contexts;
@@ -31,30 +36,31 @@ import com.github.javaparser.symbolsolver.resolution.AbstractResolutionTest;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import org.junit.Before;
-import org.junit.Test;
+import com.github.javaparser.symbolsolver.utils.LeanParserConfiguration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Malte Langkabel
  */
-public class LambdaExprContextResolutionTest extends AbstractResolutionTest {
+class LambdaExprContextResolutionTest extends AbstractResolutionTest {
 
     private TypeSolver typeSolver;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         typeSolver = new ReflectionTypeSolver();
     }
 
     @Test
-    public void solveParameterOfLambdaInMethodCallExpr() {
+    void solveParameterOfLambdaInMethodCallExpr() {
         CompilationUnit cu = parseSample("Lambda");
 
         com.github.javaparser.ast.body.ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "Agenda");
@@ -65,13 +71,13 @@ public class LambdaExprContextResolutionTest extends AbstractResolutionTest {
 
         Context context = new LambdaExprContext(lambdaExpr, typeSolver);
 
-        Optional<Value> ref = context.solveSymbolAsValue("p", typeSolver);
+        Optional<Value> ref = context.solveSymbolAsValue("p");
         assertTrue(ref.isPresent());
         assertEquals("? super java.lang.String", ref.get().getType().describe());
     }
 
     @Test
-    public void solveParameterOfLambdaInFieldDecl() {
+    void solveParameterOfLambdaInFieldDecl() {
         CompilationUnit cu = parseSample("Lambda");
 
         com.github.javaparser.ast.body.ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "Agenda");
@@ -81,17 +87,17 @@ public class LambdaExprContextResolutionTest extends AbstractResolutionTest {
         Path src = Paths.get("src/test/resources");
         CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver());
-        combinedTypeSolver.add(new JavaParserTypeSolver(adaptPath(src)));
+        combinedTypeSolver.add(new JavaParserTypeSolver(adaptPath(src), new LeanParserConfiguration()));
 
         Context context = new LambdaExprContext(lambdaExpr, combinedTypeSolver);
 
-        Optional<Value> ref = context.solveSymbolAsValue("p", typeSolver);
+        Optional<Value> ref = context.solveSymbolAsValue("p");
         assertTrue(ref.isPresent());
         assertEquals("java.lang.String", ref.get().getType().describe());
     }
 
     @Test
-    public void solveParameterOfLambdaInVarDecl() {
+    void solveParameterOfLambdaInVarDecl() {
         CompilationUnit cu = parseSample("Lambda");
 
         com.github.javaparser.ast.body.ClassOrInterfaceDeclaration clazz = Navigator.demandClass(cu, "Agenda");
@@ -102,11 +108,11 @@ public class LambdaExprContextResolutionTest extends AbstractResolutionTest {
         Path src = adaptPath("src/test/resources");
         CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver());
-        combinedTypeSolver.add(new JavaParserTypeSolver(src));
+        combinedTypeSolver.add(new JavaParserTypeSolver(src, new LeanParserConfiguration()));
 
         Context context = new LambdaExprContext(lambdaExpr, combinedTypeSolver);
 
-        Optional<Value> ref = context.solveSymbolAsValue("p", typeSolver);
+        Optional<Value> ref = context.solveSymbolAsValue("p");
         assertTrue(ref.isPresent());
         assertEquals("java.lang.String", ref.get().getType().describe());
     }

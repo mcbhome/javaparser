@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.resolution.typesolvers;
@@ -111,7 +116,7 @@ public class JavaParserTypeSolver implements TypeSolver {
         try {
             return parsedFiles.get(srcFile.toAbsolutePath(), () -> {
                 try {
-                    if (!Files.exists(srcFile)) {
+                    if (!Files.exists(srcFile) || !Files.isRegularFile(srcFile)) {
                         return Optional.empty();
                     }
                     return javaParser.parse(COMPILATION_UNIT, provider(srcFile))
@@ -126,7 +131,19 @@ public class JavaParserTypeSolver implements TypeSolver {
         }
     }
 
+    /**
+     * Note that this parse only files directly contained in this directory.
+     * It does not traverse recursively all children directory.
+     */
     private List<CompilationUnit> parseDirectory(Path srcDirectory) {
+        return parseDirectory(srcDirectory, false);
+    }
+
+    private List<CompilationUnit> parseDirectoryRecursively(Path srcDirectory) {
+        return parseDirectory(srcDirectory, true);
+    }
+
+    private List<CompilationUnit> parseDirectory(Path srcDirectory, boolean recursively) {
         try {
             return parsedDirectories.get(srcDirectory.toAbsolutePath(), () -> {
                 List<CompilationUnit> units = new ArrayList<>();
@@ -136,6 +153,8 @@ public class JavaParserTypeSolver implements TypeSolver {
                                 .forEach(file -> {
                                     if (file.getFileName().toString().toLowerCase().endsWith(".java")) {
                                         parse(file).ifPresent(units::add);
+                                    } else if (recursively && file.toFile().isDirectory()) {
+                                        units.addAll(parseDirectoryRecursively(file));
                                     }
                                 });
                     }
@@ -184,6 +203,7 @@ public class JavaParserTypeSolver implements TypeSolver {
                 typeName.append(nameElements[j]);
             }
 
+            // As an optimization we first try to look in the canonical position where we expect to find the file
             Path srcFile = Paths.get(filePath.toString());
             {
                 Optional<CompilationUnit> compilationUnit = parse(srcFile);
@@ -195,6 +215,8 @@ public class JavaParserTypeSolver implements TypeSolver {
                 }
             }
 
+            // If this is not possible we parse all files
+            // We try just in the same package, for classes defined in a file not named as the class itself
             {
                 List<CompilationUnit> compilationUnits = parseDirectory(srcFile.getParent());
                 for (CompilationUnit compilationUnit : compilationUnits) {

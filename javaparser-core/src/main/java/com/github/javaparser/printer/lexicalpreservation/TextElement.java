@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -53,6 +53,12 @@ public abstract class TextElement implements TextElementMatcher {
     public abstract boolean isNewline();
 
     public abstract boolean isComment();
+    
+    public abstract boolean isSeparator();
+    
+    public abstract boolean isIdentifier();
+    
+    public abstract boolean isPrimitive();
 
     public final boolean isWhiteSpaceOrComment() {
         return isWhiteSpace() || isComment();
@@ -62,6 +68,10 @@ public abstract class TextElement implements TextElementMatcher {
      * Is this TextElement representing a child of the given class?
      */
     public abstract boolean isChildOfClass(Class<? extends Node> nodeClass);
+
+    public boolean isChild() {
+        return isChildOfClass(Node.class);
+    }
 
     abstract Optional<Range> getRange();
 

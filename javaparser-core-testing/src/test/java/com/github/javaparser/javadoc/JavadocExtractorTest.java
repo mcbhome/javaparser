@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -21,28 +21,28 @@
 
 package com.github.javaparser.javadoc;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import org.apache.commons.io.Charsets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 
-public class JavadocExtractorTest {
+import static com.github.javaparser.StaticJavaParser.parse;
+
+class JavadocExtractorTest {
 
     @Test
-    public void canParseAllJavadocsInJavaParser() throws FileNotFoundException {
+    void canParseAllJavadocsInJavaParser() throws FileNotFoundException {
         processDir(new File(".."));
     }
 
     private void processFile(File file) throws FileNotFoundException {
         try {
-            CompilationUnit cu = JavaParser.parse(file, StandardCharsets.UTF_8);
+            CompilationUnit cu = parse(file);
             new VoidVisitorAdapter<Object>() {
                 @Override
                 public void visit(JavadocComment n, Object arg) {

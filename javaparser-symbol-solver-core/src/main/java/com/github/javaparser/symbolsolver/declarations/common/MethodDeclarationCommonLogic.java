@@ -1,17 +1,22 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.declarations.common;
@@ -44,10 +49,10 @@ public class MethodDeclarationCommonLogic {
     }
 
     public MethodUsage resolveTypeVariables(Context context, List<ResolvedType> parameterTypes) {
-        ResolvedType returnType = replaceTypeParams(methodDeclaration.getReturnType(), typeSolver, context);
+        ResolvedType returnType = replaceTypeParams(methodDeclaration.getReturnType(), context);
         List<ResolvedType> params = new ArrayList<>();
         for (int i = 0; i < methodDeclaration.getNumberOfParams(); i++) {
-            ResolvedType replaced = replaceTypeParams(methodDeclaration.getParam(i).getType(), typeSolver, context);
+            ResolvedType replaced = replaceTypeParams(methodDeclaration.getParam(i).getType(), context);
             params.add(replaced);
         }
 
@@ -66,11 +71,11 @@ public class MethodDeclarationCommonLogic {
         return new MethodUsage(methodDeclaration, params, returnType);
     }
 
-    private ResolvedType replaceTypeParams(ResolvedType type, TypeSolver typeSolver, Context context) {
+    private ResolvedType replaceTypeParams(ResolvedType type, Context context) {
         if (type.isTypeVariable()) {
             ResolvedTypeParameterDeclaration typeParameter = type.asTypeParameter();
             if (typeParameter.declaredOnType()) {
-                Optional<ResolvedType> typeParam = typeParamByName(typeParameter.getName(), typeSolver, context);
+                Optional<ResolvedType> typeParam = typeParamByName(typeParameter.getName(), context);
                 if (typeParam.isPresent()) {
                     type = typeParam.get();
                 }
@@ -78,13 +83,13 @@ public class MethodDeclarationCommonLogic {
         }
 
         if (type.isReferenceType()) {
-            type.asReferenceType().transformTypeParameters(tp -> replaceTypeParams(tp, typeSolver, context));
+            type.asReferenceType().transformTypeParameters(tp -> replaceTypeParams(tp, context));
         }
 
         return type;
     }
 
-    protected Optional<ResolvedType> typeParamByName(String name, TypeSolver typeSolver, Context context) {
+    protected Optional<ResolvedType> typeParamByName(String name, Context context) {
         return methodDeclaration.getTypeParameters().stream().filter(tp -> tp.getName().equals(name)).map(tp -> toType(tp)).findFirst();
     }
 

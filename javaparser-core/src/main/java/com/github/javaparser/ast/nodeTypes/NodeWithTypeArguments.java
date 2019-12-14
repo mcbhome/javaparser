@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -38,6 +38,8 @@ import static com.github.javaparser.ast.NodeList.nodeList;
  *     new X&lt;>();      --> typeArguments = [], diamondOperator = true
  *     new X&lt;C,D>();   --> typeArguments = [C,D], diamondOperator = false
  * </pre>
+ * Only ObjectCreationExpr uses the diamond operator.
+ * On other nodes it is treated the same as the first case.
  */
 public interface NodeWithTypeArguments<N extends Node> {
     /**

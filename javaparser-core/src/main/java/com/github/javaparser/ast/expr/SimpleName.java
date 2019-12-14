@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -31,8 +31,8 @@ import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.NonEmptyProperty;
 import com.github.javaparser.metamodel.SimpleNameMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-import javax.annotation.Generated;
 import com.github.javaparser.TokenRange;
+import com.github.javaparser.ast.Generated;
 
 /**
  * A name that consists of a single identifier.
@@ -40,7 +40,7 @@ import com.github.javaparser.TokenRange;
  *
  * @see Name
  */
-public final class SimpleName extends Node implements NodeWithIdentifier<SimpleName> {
+public class SimpleName extends Node implements NodeWithIdentifier<SimpleName> {
 
     @NonEmptyProperty
     private String identifier;

@@ -1,7 +1,27 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser;
 
 import com.github.javaparser.ast.ArrayCreationLevel;
-import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.Parameter;
@@ -236,16 +256,6 @@ abstract class GeneratedJavaParserBase {
     }
 
     /**
-     * Add modifier mod to modifiers
-     */
-    void addModifier(EnumSet<Modifier> modifiers, Modifier mod) {
-        if (modifiers.contains(mod)) {
-            addProblem("Duplicated modifier");
-        }
-        modifiers.add(mod);
-    }
-
-    /**
      * Propagate expansion of the range on the right to the parent. This is necessary when the right border of the child
      * is determining the right border of the parent (i.e., the child is the last element of the parent). In this case
      * when we "enlarge" the child we should enlarge also the parent.
@@ -269,11 +279,11 @@ abstract class GeneratedJavaParserBase {
         if (ret instanceof EnclosedExpr) {
             Expression inner = ((EnclosedExpr) ret).getInner();
             SimpleName id = ((NameExpr) inner).getName();
-            NodeList<Parameter> params = add(new NodeList<>(), new Parameter(ret.getTokenRange().orElse(null), EnumSet.noneOf(Modifier.class), new NodeList<>(), new UnknownType(), false, new NodeList<>(), id));
+            NodeList<Parameter> params = add(new NodeList<>(), new Parameter(ret.getTokenRange().orElse(null), new NodeList<>(), new NodeList<>(), new UnknownType(), false, new NodeList<>(), id));
             ret = new LambdaExpr(range(ret, lambdaBody), params, lambdaBody, true);
         } else if (ret instanceof NameExpr) {
             SimpleName id = ((NameExpr) ret).getName();
-            NodeList<Parameter> params = add(new NodeList<>(), new Parameter(ret.getTokenRange().orElse(null), EnumSet.noneOf(Modifier.class), new NodeList<>(), new UnknownType(), false, new NodeList<>(), id));
+            NodeList<Parameter> params = add(new NodeList<>(), new Parameter(ret.getTokenRange().orElse(null), new NodeList<>(), new NodeList<>(), new UnknownType(), false, new NodeList<>(), id));
             ret = new LambdaExpr(range(ret, lambdaBody), params, lambdaBody, false);
         } else if (ret instanceof LambdaExpr) {
             ((LambdaExpr) ret).setBody(lambdaBody);
@@ -332,8 +342,6 @@ abstract class GeneratedJavaParserBase {
             expected.append(" ").append(option);
         }
 
-        sb.append("");
-
         Token token = exception.currentToken.next;
         for (int i = 0; i < maxExpectedTokenSequenceLength; i++) {
             String tokenText = token.image;
@@ -365,5 +373,41 @@ abstract class GeneratedJavaParserBase {
                     .append(expected.toString());
         }
         return sb.toString();
+    }
+
+    /**
+     * Converts a NameExpr or a FieldAccessExpr scope to a Name.
+     */
+    Name scopeToName(Expression scope) {
+        if (scope.isNameExpr()) {
+            SimpleName simpleName = scope.asNameExpr().getName();
+            return new Name(simpleName.getTokenRange().get(), null, simpleName.getIdentifier());
+        }
+        if (scope.isFieldAccessExpr()) {
+            FieldAccessExpr fieldAccessExpr = scope.asFieldAccessExpr();
+            return new Name(fieldAccessExpr.getTokenRange().get(), scopeToName(fieldAccessExpr.getScope()), fieldAccessExpr.getName().getIdentifier());
+
+        }
+        throw new IllegalStateException("Unexpected expression type: " + scope.getClass().getSimpleName());
+    }
+
+    String unquote(String s) {
+        return s.substring(1, s.length() - 1);
+    }
+
+    String unTripleQuote(String s) {
+        int start = 3;
+        // Skip over the first end of line too:
+        if (s.charAt(start) == '\r') {
+            start++;
+        }
+        if (s.charAt(start) == '\n') {
+            start++;
+        }
+        return s.substring(start, s.length() - 3);
+    }
+
+    void setYieldSupported() {
+        getTokenSource().setYieldSupported();
     }
 }

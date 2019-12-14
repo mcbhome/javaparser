@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -35,21 +35,22 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.observer.AstObserver;
 import com.github.javaparser.ast.observer.AstObserverAdapter;
 import com.github.javaparser.ast.observer.ObservableProperty;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.type.PrimitiveType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.github.javaparser.JavaParser.parse;
-import static com.github.javaparser.JavaParser.parseExpression;
+import static com.github.javaparser.StaticJavaParser.parse;
+import static com.github.javaparser.StaticJavaParser.parseExpression;
 import static com.github.javaparser.utils.Utils.EOL;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class NodeTest {
+class NodeTest {
 
     @Test
-    public void registerSubTree() {
+    void registerSubTree() {
         String code = "class A { int f; void foo(int p) { return 'z'; }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -79,7 +80,7 @@ public class NodeTest {
     }
 
     @Test
-    public void registerWithJustNodeMode() {
+    void registerWithJustNodeMode() {
         String code = "class A { int f; void foo(int p) { return 'z'; }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -107,7 +108,7 @@ public class NodeTest {
     }
 
     @Test
-    public void registerWithNodeAndExistingDescendantsMode() {
+    void registerWithNodeAndExistingDescendantsMode() {
         String code = "class A { int f; void foo(int p) { return 'z'; }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -143,7 +144,7 @@ public class NodeTest {
     }
 
     @Test
-    public void registerWithSelfPropagatingMode() {
+    void registerWithSelfPropagatingMode() {
         String code = "class A { int f; void foo(int p) { return 'z'; }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -182,7 +183,7 @@ public class NodeTest {
     }
 
     @Test
-    public void deleteAParameterTriggerNotifications() {
+    void deleteAParameterTriggerNotifications() {
         String code = "class A { void foo(int p) { }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -200,7 +201,7 @@ public class NodeTest {
     }
 
     @Test
-    public void deleteClassNameDoesNotTriggerNotifications() {
+    void deleteClassNameDoesNotTriggerNotifications() {
         String code = "class A { void foo(int p) { }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -214,12 +215,12 @@ public class NodeTest {
         cu.register(observer, Node.ObserverRegistrationMode.SELF_PROPAGATING);
 
         // I cannot remove the name of a type
-        assertEquals(false, cu.getClassByName("A").get().getName().remove());
+        assertFalse(cu.getClassByName("A").get().getName().remove());
         assertEquals(Arrays.asList(), changes);
     }
 
     @Test
-    public void deleteMethodBodyDoesTriggerNotifications() {
+    void deleteMethodBodyDoesTriggerNotifications() {
         String code = "class A { void foo(int p) { }}";
         CompilationUnit cu = parse(code);
         List<String> changes = new ArrayList<>();
@@ -237,26 +238,26 @@ public class NodeTest {
         };
         cu.register(observer, Node.ObserverRegistrationMode.SELF_PROPAGATING);
 
-        assertEquals(true, cu.getClassByName("A").get().getMethodsByName("foo").get(0).getBody().get().remove());
+        assertTrue(cu.getClassByName("A").get().getMethodsByName("foo").get(0).getBody().get().remove());
         assertEquals(Arrays.asList("setting [BODY] to null"), changes);
     }
 
     @Test
-    public void removeOrphanCommentPositiveCase() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class), false, "A");
+    void removeOrphanCommentPositiveCase() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(), false, "A");
         Comment c = new LineComment("A comment");
         decl.addOrphanComment(c);
         assertEquals(1, decl.getOrphanComments().size());
-        assertTrue(decl == c.getParentNode().get());
+        assertSame(decl, c.getParentNode().get());
         assertTrue(decl.removeOrphanComment(c));
         assertEquals(0, decl.getOrphanComments().size());
         assertFalse(c.getParentNode().isPresent());
     }
 
     @Test
-    public void removeOrphanCommentNegativeCase() {
-        ClassOrInterfaceDeclaration aClass = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class), false, "A");
-        FieldDeclaration aField = new FieldDeclaration(EnumSet.noneOf(Modifier.class), new VariableDeclarator(PrimitiveType.intType(), "f"));
+    void removeOrphanCommentNegativeCase() {
+        ClassOrInterfaceDeclaration aClass = new ClassOrInterfaceDeclaration(new NodeList<>(), false, "A");
+        FieldDeclaration aField = new FieldDeclaration(new NodeList<>(), new VariableDeclarator(PrimitiveType.intType(), "f"));
         aClass.getMembers().add(aField);
         Comment c = new LineComment("A comment");
         aField.addOrphanComment(c);
@@ -267,46 +268,77 @@ public class NodeTest {
     }
 
     @Test
-    public void hasJavaDocCommentPositiveCaseWithSetJavaDocComment() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void hasJavaDocCommentPositiveCaseWithSetJavaDocComment() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
         decl.setJavadocComment("A comment");
-        assertEquals(true, decl.hasJavaDocComment());
+        assertTrue(decl.hasJavaDocComment());
     }
 
     @Test
-    public void hasJavaDocCommentPositiveCaseWithSetComment() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void hasJavaDocCommentPositiveCaseWithSetComment() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
         decl.setComment(new JavadocComment("A comment"));
-        assertEquals(true, decl.hasJavaDocComment());
+        assertTrue(decl.hasJavaDocComment());
     }
 
     @Test
-    public void hasJavaDocCommentNegativeCaseNoComment() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void hasJavaDocCommentNegativeCaseNoComment() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
-        assertEquals(false, decl.hasJavaDocComment());
+        assertFalse(decl.hasJavaDocComment());
     }
 
     @Test
-    public void hasJavaDocCommentNegativeCaseLineComment() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void hasJavaDocCommentNegativeCaseLineComment() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
         decl.setComment(new LineComment("foo"));
-        assertEquals(false, decl.hasJavaDocComment());
+        assertFalse(decl.hasJavaDocComment());
     }
 
     @Test
-    public void hasJavaDocCommentNegativeCaseBlockComment() {
-        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(EnumSet.noneOf(Modifier.class),
+    void hasJavaDocCommentNegativeCaseBlockComment() {
+        ClassOrInterfaceDeclaration decl = new ClassOrInterfaceDeclaration(new NodeList<>(),
                 false, "Foo");
         decl.setComment(new BlockComment("foo"));
-        assertEquals(false, decl.hasJavaDocComment());
+        assertFalse(decl.hasJavaDocComment());
     }
 
     @Test
-    public void removeAllOnRequiredProperty() {
+    void findCompilationUnitOfCommentNode() {
+        CompilationUnit cu = parse("class X {\n" +
+                "  void x() {\n" +
+                "    // this is a comment\n" +
+                "    foo();\n" +
+                "  }\n" +
+                "}\n");
+
+        Comment comment = cu.getType(0).getMember(0)
+                .asMethodDeclaration().getBody().get()
+                .getStatement(0).getComment().get();
+
+        assertTrue(comment.findCompilationUnit().isPresent());
+    }
+
+    @Test
+    void findCompilationUnitOfOrphanCommentNode() {
+        CompilationUnit cu = parse("class X {\n" +
+                "  void x() {\n" +
+                "    // this is a comment\n" +
+                "  }\n" +
+                "}\n");
+
+        Comment comment = cu.getType(0).getMember(0)
+                .asMethodDeclaration().getBody().get()
+                .getOrphanComments().get(0);
+
+        assertTrue(comment.findCompilationUnit().isPresent());
+    }
+
+    @Test
+    void removeAllOnRequiredProperty() {
         CompilationUnit cu = parse("class X{ void x(){}}");
         MethodDeclaration methodDeclaration = cu.getType(0).getMethods().get(0);
         methodDeclaration.getName().removeForced();
@@ -315,7 +347,7 @@ public class NodeTest {
     }
 
     @Test
-    public void removingTheSecondOfAListOfIdenticalStatementsDoesNotMessUpTheParents() {
+    void removingTheSecondOfAListOfIdenticalStatementsDoesNotMessUpTheParents() {
         CompilationUnit unit = parse(String.format("public class Example {%1$s" +
                 "  public static void example() {%1$s" +
                 "    boolean swapped;%1$s" +
@@ -324,34 +356,34 @@ public class NodeTest {
                 "  }%1$s" +
                 "}%1$s", EOL));
         // remove the second swapped=false
-        Node target = unit.getChildNodes().get(0).getChildNodes().get(1).getChildNodes().get(2).getChildNodes().get(2);
+        ExpressionStmt target = unit.findAll(ExpressionStmt.class).get(2);
         target.remove();
         // This will throw an exception if the parents are bad.
-        System.out.println(unit.toString());
+        unit.toString();
     }
 
     @Test
-    public void findCompilationUnit() {
+    void findCompilationUnit() {
         CompilationUnit cu = parse("class X{int x;}");
         VariableDeclarator x = cu.getClassByName("X").get().getMember(0).asFieldDeclaration().getVariables().get(0);
         assertEquals(cu, x.findCompilationUnit().get());
     }
 
     @Test
-    public void findParent() {
+    void findParent() {
         CompilationUnit cu = parse("class X{int x;}");
         SimpleName x = cu.getClassByName("X").get().getMember(0).asFieldDeclaration().getVariables().get(0).getName();
-        assertEquals("int x;", x.findParent(FieldDeclaration.class).get().toString());
+        assertEquals("int x;", x.findAncestor(FieldDeclaration.class).get().toString());
     }
 
     @Test
-    public void cantFindCompilationUnit() {
+    void cantFindCompilationUnit() {
         VariableDeclarator x = new VariableDeclarator();
         assertFalse(x.findCompilationUnit().isPresent());
     }
 
     @Test
-    public void genericWalk() {
+    void genericWalk() {
         Expression e = parseExpression("1+1");
         StringBuilder b = new StringBuilder();
         e.walk(n -> b.append(n.toString()));
@@ -359,7 +391,7 @@ public class NodeTest {
     }
 
     @Test
-    public void classSpecificWalk() {
+    void classSpecificWalk() {
         Expression e = parseExpression("1+1");
         StringBuilder b = new StringBuilder();
         e.walk(IntegerLiteralExpr.class, n -> b.append(n.toString()));
@@ -367,42 +399,42 @@ public class NodeTest {
     }
 
     @Test
-    public void conditionalFindAll() {
+    void conditionalFindAll() {
         Expression e = parseExpression("1+2+3");
         List<IntegerLiteralExpr> ints = e.findAll(IntegerLiteralExpr.class, n -> n.asInt() > 1);
         assertEquals("[2, 3]", ints.toString());
     }
 
     @Test
-    public void typeOnlyFindAll() {
+    void typeOnlyFindAll() {
         Expression e = parseExpression("1+2+3");
         List<IntegerLiteralExpr> ints = e.findAll(IntegerLiteralExpr.class);
         assertEquals("[1, 2, 3]", ints.toString());
     }
 
     @Test
-    public void typeOnlyFindAllMatchesSubclasses() {
+    void typeOnlyFindAllMatchesSubclasses() {
         Expression e = parseExpression("1+2+3");
         List<Node> ints = e.findAll(Node.class);
         assertEquals("[1 + 2 + 3, 1 + 2, 1, 2, 3]", ints.toString());
     }
 
     @Test
-    public void conditionalTypedFindFirst() {
+    void conditionalTypedFindFirst() {
         Expression e = parseExpression("1+2+3");
         Optional<IntegerLiteralExpr> ints = e.findFirst(IntegerLiteralExpr.class, n -> n.asInt() > 1);
         assertEquals("Optional[2]", ints.toString());
     }
 
     @Test
-    public void typeOnlyFindFirst() {
+    void typeOnlyFindFirst() {
         Expression e = parseExpression("1+2+3");
         Optional<IntegerLiteralExpr> ints = e.findFirst(IntegerLiteralExpr.class);
         assertEquals("Optional[1]", ints.toString());
     }
-    
+
     @Test
-    public void stream() {
+    void stream() {
         Expression e = parseExpression("1+2+3");
         List<IntegerLiteralExpr> ints = e.stream()
                 .filter(n -> n instanceof IntegerLiteralExpr)

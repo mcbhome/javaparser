@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.modules;
 
 import com.github.javaparser.*;
@@ -7,21 +28,19 @@ import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.Name;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.modules.*;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.printer.ConcreteSyntaxModel;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.github.javaparser.GeneratedJavaParserConstants.IDENTIFIER;
-import static com.github.javaparser.JavaParser.parseClassOrInterfaceType;
-import static com.github.javaparser.JavaParser.parseName;
 import static com.github.javaparser.ParserConfiguration.LanguageLevel.JAVA_9;
 import static com.github.javaparser.Providers.provider;
+import static com.github.javaparser.StaticJavaParser.parseName;
 import static com.github.javaparser.utils.TestUtils.assertEqualsNoEol;
 import static com.github.javaparser.utils.Utils.EOL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ModuleDeclarationTest {
+class ModuleDeclarationTest {
     public static final JavaParser javaParser = new JavaParser(new ParserConfiguration().setLanguageLevel(JAVA_9));
 
     private CompilationUnit parse(String code) {
@@ -33,22 +52,22 @@ public class ModuleDeclarationTest {
     }
 
     @Test
-    public void moduleInfoKeywordsAreSeenAsIdentifiers() {
+    void moduleInfoKeywordsAreSeenAsIdentifiers() {
         CompilationUnit cu = parse("class module { }");
         JavaToken moduleToken = cu.getClassByName("module").get().getName().getTokenRange().get().getBegin();
         assertEquals(IDENTIFIER, moduleToken.getKind());
     }
 
     @Test
-    public void issue988RequireTransitiveShouldRequireAModuleCalledTransitive() {
+    void issue988RequireTransitiveShouldRequireAModuleCalledTransitive() {
         CompilationUnit cu = parse("module X { requires transitive; }");
-        ModuleRequiresStmt requiresTransitive = (ModuleRequiresStmt) cu.getModule().get().getModuleStmts().get(0);
+        ModuleRequiresDirective requiresTransitive = (ModuleRequiresDirective) cu.getModule().get().getDirectives().get(0);
         assertEquals("transitive", requiresTransitive.getNameAsString());
         assertEquals(IDENTIFIER, requiresTransitive.getName().getTokenRange().get().getBegin().getKind());
     }
 
     @Test
-    public void jlsExample1() {
+    void jlsExample1() {
         CompilationUnit cu = parse(
                 "@Foo(1) @Foo(2) @Bar " +
                         "module M.N {" +
@@ -75,31 +94,31 @@ public class ModuleDeclarationTest {
                 new SingleMemberAnnotationExpr(new Name("Foo"), new IntegerLiteralExpr("2")),
                 new MarkerAnnotationExpr(new Name("Bar")));
 
-        ModuleRequiresStmt moduleRequiresStmt = module.getModuleStmts().get(0).asModuleRequiresStmt();
+        ModuleRequiresDirective moduleRequiresStmt = module.getDirectives().get(0).asModuleRequiresStmt();
         assertThat(moduleRequiresStmt.getNameAsString()).isEqualTo("A.B");
         assertThat(moduleRequiresStmt.getModifiers()).isEmpty();
 
-        ModuleExportsStmt moduleExportsStmt = module.getModuleStmts().get(5).asModuleExportsStmt();
+        ModuleExportsDirective moduleExportsStmt = module.getDirectives().get(5).asModuleExportsStmt();
         assertThat(moduleExportsStmt.getNameAsString()).isEqualTo("R.S");
         assertThat(moduleExportsStmt.getModuleNames()).containsExactly(parseName("T1.U1"), parseName("T2.U2"));
 
-        ModuleOpensStmt moduleOpensStmt = module.getModuleStmts().get(7).asModuleOpensStmt();
+        ModuleOpensDirective moduleOpensStmt = module.getDirectives().get(7).asModuleOpensStmt();
         assertThat(moduleOpensStmt.getNameAsString()).isEqualTo("R.S");
         assertThat(moduleOpensStmt.getModuleNames()).containsExactly(parseName("T1.U1"), parseName("T2.U2"));
 
-        ModuleUsesStmt moduleUsesStmt = module.getModuleStmts().get(8).asModuleUsesStmt();
-        assertThat(moduleUsesStmt.getType().toString()).isEqualTo("V.W");
+        ModuleUsesDirective moduleUsesStmt = module.getDirectives().get(8).asModuleUsesStmt();
+        assertThat(moduleUsesStmt.getNameAsString()).isEqualTo("V.W");
 
-        ModuleProvidesStmt moduleProvidesStmt = module.getModuleStmts().get(9).asModuleProvidesStmt();
-        assertThat(moduleProvidesStmt.getType().toString()).isEqualTo("X.Y");
-        assertThat(moduleProvidesStmt.getWithTypes()).containsExactly(
-                new ClassOrInterfaceType(parseClassOrInterfaceType("Z1"), "Z2"),
-                new ClassOrInterfaceType(parseClassOrInterfaceType("Z3"), "Z4"));
+        ModuleProvidesDirective moduleProvidesStmt = module.getDirectives().get(9).asModuleProvidesStmt();
+        assertThat(moduleProvidesStmt.getNameAsString()).isEqualTo("X.Y");
+        assertThat(moduleProvidesStmt.getWith()).containsExactly(
+                parseName("Z1.Z2"),
+                parseName("Z3.Z4"));
 
     }
 
     @Test
-    public void jlsExample2HasAnOpenModule() {
+    void jlsExample2HasAnOpenModule() {
         CompilationUnit cu = parse("open module M.N {}");
 
         ModuleDeclaration module = cu.getModule().get();
@@ -108,14 +127,14 @@ public class ModuleDeclarationTest {
     }
 
     @Test
-    public void testPrettyPrinting() {
+    void testPrettyPrinting() {
         CompilationUnit cu = parse(
                 "@Foo(1) @Foo(2) @Bar " +
                         "module M.N {" +
                         "  requires A.B;" +
                         "  requires transitive C.D;" +
                         "  requires static E.F;" +
-                        "  requires transitive static G.H;" +
+                        "  requires static transitive G.H;" +
                         "" +
                         "  exports P.Q;" +
                         "  exports R.S to T1.U1, T2.U2;" +
@@ -147,7 +166,7 @@ public class ModuleDeclarationTest {
     }
 
     @Test
-    public void testCsmPrinting() {
+    void testCsmPrinting() {
         CompilationUnit cu = parse(
                 "@Foo(1) @Foo(2) @Bar " +
                         "open module M.N {" +
@@ -174,7 +193,7 @@ public class ModuleDeclarationTest {
                         "    requires A.B;" + EOL +
                         "    requires transitive C.D;" + EOL +
                         "    requires static E.F;" + EOL +
-                        "    requires static transitive G.H;" + EOL +
+                        "    requires transitive static G.H;" + EOL +
                         "    exports P.Q;" + EOL +
                         "    exports R.S to T1.U1, T2.U2;" + EOL +
                         "    opens P.Q;" + EOL +
@@ -186,7 +205,7 @@ public class ModuleDeclarationTest {
     }
 
     @Test
-    public void fluentInterface() {
+    void fluentInterface() {
         ModuleDeclaration moduleDeclaration = new CompilationUnit()
                 .setModule("com.laamella.base")
                 .addSingleMemberAnnotation(SuppressWarnings.class, "\"module\"")
@@ -195,15 +214,15 @@ public class ModuleDeclarationTest {
                 .addDirective("exports com.laamella.base.entity.channel.internal to com.laamella.core;")
                 .addDirective("uses com.laamella.base.util.internal.FactoryDelegate;");
 
-        moduleDeclaration.getModuleStmts()
-                .addLast(new ModuleExportsStmt()
+        moduleDeclaration.getDirectives()
+                .addLast(new ModuleExportsDirective()
                         .setName("foo.bar")
                         .addModuleName("other.foo")
                         .addModuleName("other.bar")
                 );
 
         moduleDeclaration
-                .addDirective(new ModuleExportsStmt()
+                .addDirective(new ModuleExportsDirective()
                         .setName("foo.bar.x")
                         .addModuleName("other.foo")
                         .addModuleName("other.bar")

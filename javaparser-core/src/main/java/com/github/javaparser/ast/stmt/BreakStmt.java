@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -30,18 +30,32 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.visitor.CloneVisitor;
 import com.github.javaparser.metamodel.BreakStmtMetaModel;
 import com.github.javaparser.metamodel.JavaParserMetaModel;
-import javax.annotation.Generated;
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.metamodel.OptionalProperty;
 import java.util.function.Consumer;
+import com.github.javaparser.ast.Generated;
 
 /**
- * A usage of the break keyword.
- * <br/>In <code>break abc;</code> the label is abc.
+ * <h1>The break statement</h1>
+ * <h2>Java 1.0-11</h2>
+ * Break has an optional label:
+ * <br/><code>break;</code>
+ * <br/><code>break somewhere;</code>
+ * <br/>The label is in the "value" property as a NameExpr.
+ * <h2>Java 12</h2>
+ * Break can now also have any expression,
+ * to be used in the switch-expression:
+ * <br/><code>break 123+456;</code>
+ * <br/><code>break "more or less";</code>
+ * <br/>The expression will be in the "value" property.
+ * <h2>Java 13</h2>
+ * The break statement has been reverted to what it was before Java 12, and break-with-value is now the YieldStatement.
  *
  * @author Julio Vilmar Gesser
+ * @see com.github.javaparser.ast.expr.SwitchExpr
+ * @see YieldStmt
  */
-public final class BreakStmt extends Statement {
+public class BreakStmt extends Statement {
 
     @OptionalProperty
     private SimpleName label;

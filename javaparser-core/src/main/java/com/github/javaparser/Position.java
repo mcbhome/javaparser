@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2016 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -61,6 +61,20 @@ public class Position implements Comparable<Position> {
 
     public Position withLine(int line) {
         return new Position(line, this.column);
+    }
+
+    /**
+     * @return a position that is "characters" characters more to the right than this position.
+     */
+    public Position right(int characters) {
+        return new Position(line, this.column + characters);
+    }
+
+    /**
+     * @return a position that is on the start of the next line from this position.
+     */
+    public Position nextLine() {
+        return new Position(line + 1, HOME.column);
     }
 
     /**

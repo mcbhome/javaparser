@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
 package com.github.javaparser.manual;
 
 import com.github.javaparser.ParserConfiguration;
@@ -6,9 +27,9 @@ import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.Log;
 import com.github.javaparser.utils.SourceRoot;
 import com.github.javaparser.utils.SourceZip;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -20,15 +41,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static com.github.javaparser.ParserConfiguration.LanguageLevel.JAVA_10;
-import static com.github.javaparser.ParserConfiguration.LanguageLevel.JAVA_9;
+import static com.github.javaparser.ParserConfiguration.LanguageLevel.*;
+import static com.github.javaparser.utils.CodeGenerationUtils.*;
 import static com.github.javaparser.utils.CodeGenerationUtils.f;
 import static com.github.javaparser.utils.SourceRoot.Callback.Result.DONT_SAVE;
 import static com.github.javaparser.utils.TestUtils.download;
 import static com.github.javaparser.utils.TestUtils.temporaryDirectory;
 import static java.util.Comparator.comparing;
 
-public class BulkParseTest {
+class BulkParseTest {
     /**
      * Running this will download a version of the OpenJDK, unzip it, and parse it. If it throws a stack overflow
      * exception, increase the JVM's stack size.
@@ -42,7 +63,7 @@ public class BulkParseTest {
     }
 
     private void parseOpenJdkLangToolsRepository() throws IOException {
-        Path workdir = CodeGenerationUtils.mavenModuleRoot(BulkParseTest.class).resolve(Paths.get(temporaryDirectory(), "javaparser_bulkparsetest"));
+        Path workdir = mavenModuleRoot(BulkParseTest.class).resolve(Paths.get(temporaryDirectory(), "javaparser_bulkparsetest"));
         workdir.toFile().mkdirs();
         Path openJdkZipPath = workdir.resolve("langtools.zip");
         if (Files.notExists(openJdkZipPath)) {
@@ -60,18 +81,18 @@ public class BulkParseTest {
         bulkTest(new SourceZip(path), "openjdk_src_zip_test_results.txt", new ParserConfiguration().setLanguageLevel(JAVA_9));
     }
 
-    @Before
-    public void startLogging() {
+    @BeforeEach
+    void startLogging() {
         Log.setAdapter(new Log.StandardOutStandardErrorAdapter());
     }
 
-    @After
-    public void stopLogging() {
+    @AfterEach
+    void stopLogging() {
         Log.setAdapter(new Log.SilentAdapter());
     }
 
     @Test
-    public void parseOwnSourceCode() throws IOException {
+    void parseOwnSourceCode() throws IOException {
         String[] roots = new String[]{
                 "javaparser-core/src/main/java",
                 "javaparser-core-testing/src/test/java",
@@ -84,9 +105,9 @@ public class BulkParseTest {
         };
         for (String root : roots) {
             bulkTest(
-                    new SourceRoot(CodeGenerationUtils.mavenModuleRoot(BulkParseTest.class).resolve("..").resolve(root)),
+                    new SourceRoot(mavenModuleRoot(BulkParseTest.class).resolve("..").resolve(root)),
                     "javaparser_test_results_" + root.replace("-", "_").replace("/", "_") + ".txt",
-                    new ParserConfiguration().setLanguageLevel(JAVA_9));
+                    new ParserConfiguration().setLanguageLevel(BLEEDING_EDGE));
         }
     }
 
@@ -120,7 +141,7 @@ public class BulkParseTest {
     private void writeResults(TreeMap<Path, List<Problem>> results, String testResultsFileName) throws IOException {
         Log.info("Writing results...");
 
-        Path testResults = CodeGenerationUtils.mavenModuleRoot(BulkParseTest.class).resolve(Paths.get("..", "javaparser-core-testing", "src", "test", "resources", "com", "github", "javaparser", "bulk_test_results")).normalize();
+        Path testResults = mavenModuleRoot(BulkParseTest.class).resolve(Paths.get("..", "javaparser-core-testing", "src", "test", "resources", "com", "github", "javaparser", "bulk_test_results")).normalize();
         testResults.toFile().mkdirs();
         testResults = testResults.resolve(testResultsFileName);
 
@@ -139,6 +160,7 @@ public class BulkParseTest {
             writer.write(f("%s problems in %s files", problemTotal, results.size()));
         }
 
-        Log.info("Results are in %s", testResults);
+        Path finalTestResults = testResults;
+        Log.info("Results are in %s", () -> finalTestResults);
     }
 }

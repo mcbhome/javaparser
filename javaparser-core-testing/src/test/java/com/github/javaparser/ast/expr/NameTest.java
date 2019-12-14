@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007-2010 Júlio Vilmar Gesser.
- * Copyright (C) 2011, 2013-2017 The JavaParser Team.
+ * Copyright (C) 2011, 2013-2019 The JavaParser Team.
  *
  * This file is part of JavaParser.
  *
@@ -25,59 +25,77 @@ import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.printer.ConcreteSyntaxModel;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static com.github.javaparser.JavaParser.*;
+import static com.github.javaparser.StaticJavaParser.*;
 import static com.github.javaparser.utils.Utils.EOL;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class NameTest {
+class NameTest {
+
     @Test
-    public void outerNameExprIsTheRightMostIdentifier() {
+    void outerNameExprIsTheRightMostIdentifier() {
         Name name = parseName("a.b.c");
         assertEquals("c", name.getIdentifier());
     }
 
     @Test
-    public void parsingAndUnparsingWorks() {
+    void parsingAndUnparsingWorks() {
         Name name = parseName("a.b.c");
         assertEquals("a.b.c", name.asString());
     }
 
-    @Test(expected = ParseProblemException.class)
-    public void parsingEmptyNameThrowsException() {
-        parseName("");
+    @Test
+    void parsingEmptyNameThrowsException() {
+        assertThrows(ParseProblemException.class, () -> parseName(""));
     }
 
     @Test
-    public void nameCanHaveAnnotationsInside() {
-        Name name = parseName("a.@A b. @C c");
-        assertEquals("a.b.c", name.asString());
-        assertThat(name.getAnnotations()).containsExactly(new MarkerAnnotationExpr("C"));
-        assertThat(name.getQualifier().get().getAnnotations()).containsExactly(new MarkerAnnotationExpr("A"));
+    void importName() {
+        ImportDeclaration importDeclaration = parseImport("import java.util.List;");
 
-        assertEquals("a.@A b.@C c", name.toString());
-        assertEquals("a.@A b.@C c", ConcreteSyntaxModel.genericPrettyPrint(name));
+        assertEquals("import java.util.List;" + EOL, importDeclaration.toString());
+        assertEquals("import java.util.List;" , ConcreteSyntaxModel.genericPrettyPrint(importDeclaration));
     }
 
     @Test
-    public void importName() {
-        ImportDeclaration importDeclaration = parseImport("import java.@Abc util.List;");
+    void packageName() {
+        CompilationUnit cu = parse("package p1.p2;");
 
-        assertThat(importDeclaration.getName().getQualifier().get().getAnnotations()).containsExactly(new MarkerAnnotationExpr("Abc"));
-
-        assertEquals("import java.@Abc util.List;" + EOL, importDeclaration.toString());
-        assertEquals("import java.@Abc util.List;" , ConcreteSyntaxModel.genericPrettyPrint(importDeclaration));
+        assertEquals("package p1.p2;" + EOL + EOL, cu.toString());
+        assertEquals("package p1.p2;" + EOL + EOL, ConcreteSyntaxModel.genericPrettyPrint(cu));
     }
 
     @Test
-    public void packageName() {
-        CompilationUnit cu = parse("package @Abc p1.p2;");
-
-        assertThat(cu.getPackageDeclaration().get().getName().getQualifier().get().getAnnotations()).containsExactly(new MarkerAnnotationExpr("Abc"));
-
-        assertEquals("package @Abc p1.p2;" + EOL + EOL, cu.toString());
-        assertEquals("package @Abc p1.p2;" + EOL + EOL, ConcreteSyntaxModel.genericPrettyPrint(cu));
+    void isInternalNegative() {
+        Name name = parseName("a.b.c");
+        assertFalse(name.isInternal());
     }
+
+    @Test
+    void isInternalPositive() {
+        Name name = parseName("a.b.c");
+        assertTrue(name
+                .getQualifier().get().isInternal());
+        assertTrue(name
+                .getQualifier().get()
+                .getQualifier().get().isInternal());
+    }
+
+    @Test
+    void isTopLevelNegative() {
+        Name name = parseName("a.b.c");
+        assertFalse(name
+                .getQualifier().get().isTopLevel());
+        assertFalse(name
+                .getQualifier().get()
+                .getQualifier().get().isTopLevel());
+    }
+
+    @Test
+    void isTopLevelPositive() {
+        Name name = parseName("a.b.c");
+        assertTrue(name.isTopLevel());
+    }
+
 }

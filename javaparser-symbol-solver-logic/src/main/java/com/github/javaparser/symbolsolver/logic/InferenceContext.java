@@ -1,24 +1,28 @@
 /*
- * Copyright 2016 Federico Tomassetti
+ * Copyright (C) 2015-2016 Federico Tomassetti
+ * Copyright (C) 2017-2019 The JavaParser Team.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This file is part of JavaParser.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  */
 
 package com.github.javaparser.symbolsolver.logic;
 
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.*;
-import com.github.javaparser.symbolsolver.model.typesystem.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,12 +38,11 @@ public class InferenceContext {
     private int nextInferenceVariableId = 0;
     private ObjectProvider objectProvider;
     private List<InferenceVariableType> inferenceVariableTypes = new ArrayList<>();
+    private Map<String, InferenceVariableType> inferenceVariableTypeMap = new HashMap<>();
 
     public InferenceContext(ObjectProvider objectProvider) {
         this.objectProvider = objectProvider;
     }
-
-    private Map<String, InferenceVariableType> inferenceVariableTypeMap = new HashMap<>();
 
     private InferenceVariableType inferenceVariableTypeForTp(ResolvedTypeParameterDeclaration tp) {
         if (!inferenceVariableTypeMap.containsKey(tp.getName())) {
@@ -52,7 +55,6 @@ public class InferenceContext {
     }
 
     /**
-     *
      * @return the actual with the inference variable inserted
      */
     public ResolvedType addPair(ResolvedType target, ResolvedType actual) {
@@ -79,7 +81,7 @@ public class InferenceContext {
                     ancestors = formalTypeAsReference.getAllAncestors();
                     final String actualParamTypeQname = actualTypeAsReference.getQualifiedName();
                     List<ResolvedType> correspondingActualType = ancestors.stream().filter(a -> a.getQualifiedName().equals(actualParamTypeQname)).collect(Collectors.toList());
-                    if (correspondingActualType.isEmpty()){
+                    if (correspondingActualType.isEmpty()) {
                         throw new ConfilictingGenericTypesException(formalType, actualType);
                     }
                     correspondingFormalType = correspondingActualType;
@@ -132,20 +134,20 @@ public class InferenceContext {
                 }
             }
 
-            if (actualType.isReferenceType()){
-                if (formalType.asWildcard().isBounded()){
+            if (actualType.isReferenceType()) {
+                if (formalType.asWildcard().isBounded()) {
                     registerCorrespondance(formalType.asWildcard().getBoundedType(), actualType);
                 }
             }
-        } else if (actualType instanceof InferenceVariableType){
-            if (formalType instanceof ResolvedReferenceType){
+        } else if (actualType instanceof InferenceVariableType) {
+            if (formalType instanceof ResolvedReferenceType) {
                 ((InferenceVariableType) actualType).registerEquivalentType(formalType);
-            } else if (formalType instanceof InferenceVariableType){
+            } else if (formalType instanceof InferenceVariableType) {
                 ((InferenceVariableType) actualType).registerEquivalentType(formalType);
             }
-        } else if (actualType.isConstraint()){
+        } else if (actualType.isConstraint()) {
             ResolvedLambdaConstraintType constraintType = actualType.asConstraintType();
-            if (constraintType.getBound() instanceof InferenceVariableType){
+            if (constraintType.getBound() instanceof InferenceVariableType) {
                 ((InferenceVariableType) constraintType.getBound()).registerEquivalentType(formalType);
             }
         } else if (actualType.isPrimitive()) {
@@ -153,6 +155,16 @@ public class InferenceContext {
                 // nothing to do
             } else {
                 registerCorrespondance(formalType, objectProvider.byName(actualType.asPrimitive().getBoxTypeQName()));
+            }
+        } else if (actualType.isReferenceType()) {
+            if (formalType.isPrimitive()) {
+                if (formalType.asPrimitive().getBoxTypeQName().equals(actualType.describe())) {
+                    registerCorrespondance(objectProvider.byName(formalType.asPrimitive().getBoxTypeQName()), actualType);
+                } else {
+                    // nothing to do
+                }
+            } else {
+                // nothing to do
             }
         } else {
             throw new UnsupportedOperationException(formalType.describe() + " " + actualType.describe());
@@ -176,7 +188,7 @@ public class InferenceContext {
             return new ResolvedArrayType(placeInferenceVariables(type.asArrayType().getComponentType()));
         } else if (type.isNull() || type.isPrimitive() || type.isVoid()) {
             return type;
-        } else if (type.isConstraint()){
+        } else if (type.isConstraint()) {
             return ResolvedLambdaConstraintType.bound(placeInferenceVariables(type.asConstraintType().getBound()));
         } else if (type instanceof InferenceVariableType) {
             return type;
